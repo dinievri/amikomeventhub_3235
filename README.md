@@ -1,3 +1,7 @@
+nama : dini evri rahmalia
+nim : 24.12.3235
+https://github.com/dinievri/amikomeventhub_3235
+https://amikomeventhub-3235-main-rmg6r8.free.laravel.cloud/
 <<<<<<< HEAD
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
