@@ -228,6 +228,33 @@
     </div>
   </footer>
 
+  <div class="container my-5" style="font-family: sans-serif; max-width: 1140px; margin: 0 auto; padding: 0 15px;">
+    
+    <div class="category-section" style="margin-bottom: 50px;">
+        <h3 style="border-bottom: 2px solid #6f42c1; padding-bottom: 10px; color: #333;">Kategori Event</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
+            @foreach($categories as $category)
+                <span style="background-color: #e9ecef; color: #495057; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 14px;">
+                    {{ $category->name }}
+                </span>
+            @endforeach
+        </div>
+    </div>
+
+    <div class="partner-section">
+        <h3 style="border-bottom: 2px solid #6f42c1; padding-bottom: 10px; color: #333;">Partner Pendukung</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+            @foreach($partners as $partner)
+                <div style="background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <img src="{{ $partner->logo_url }}" alt="{{ $partner->name }}" style="max-height: 60px; max-width: 100%; object-fit: contain; margin-bottom: 10px;" onerror="this.src='https://placehold.co/200x100?text=Logo+Partner'">
+                    <h5 style="margin: 5px 0 0 0; color: #212529; font-size: 16px;">{{ $partner->name }}</h5>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+</div>
+
 </body>
 
 </html>
