@@ -9,9 +9,9 @@ class Partner extends Model
 {
     use HasFactory;
 
-    // Pastikan 'logo_url' sudah terdaftar di dalam array fillable!
+    // Pastikan 'logo_url' ada di dalam array ini!
     protected $fillable = [
         'name',
-        'logo_url',
+        'logo_url', 
     ];
 }

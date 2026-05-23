@@ -13,16 +13,16 @@ class PartnerController extends Controller
      */
     public function index(Request $request)
     {
-        // Mengambil input dari kolom search form HTML
+        // Menangkap data input dari kolom search form HTML
         $search = $request->input('search');
 
-        // Jika ada input pencarian, lakukan filter dengan query LIKE
+        // Jika ada input pencarian, saring menggunakan query LIKE
         if (!empty($search)) {
             $partners = Partner::where('name', 'LIKE', '%' . $search . '%')
                 ->latest()
                 ->get();
         } else {
-            // Jika kosong, tampilkan semua data partner seperti biasa
+            // Jika pencarian kosong, tampilkan semua data
             $partners = Partner::latest()->get();
         }
 
@@ -31,7 +31,7 @@ class PartnerController extends Controller
     }
 
     /**
-     * Menampilkan halaman form tambah partner
+     * Menampilkan halaman formulir tambah partner
      */
     public function create()
     {
@@ -39,11 +39,11 @@ class PartnerController extends Controller
     }
 
     /**
-     * Menyimpan data partner baru ke database (Sudah Fix Validasi Cloud)
+     * Menyimpan data partner baru ke database (Aman untuk SQLite Cloud)
      */
     public function store(Request $request)
     {
-        // Validasi input: logo_url diubah jadi string biasa agar cloud tidak sensitif/error 500
+        // Validasi input form menggunakan string agar cloud lebih toleran
         $request->validate([
             'name' => 'required|string|max:255',
             'logo_url' => 'nullable|string|max:255', 
@@ -51,9 +51,10 @@ class PartnerController extends Controller
 
         $data = $request->all();
 
-        // PENGAMAN DATABASE: Jika dikosongkan, ganti dengan string kosong agar tidak memicu error general 1364
+        // FIX SQLITE CLOUD: Jika input logo_url kosong, hapus dari array $data
+        // Langkah ini memaksa SQLite mengisi kolom dengan nilai default-nya sehingga terhindar dari Constraint Violation (Error 500)
         if (empty($data['logo_url'])) {
-            $data['logo_url'] = '';
+            unset($data['logo_url']);
         }
 
         Partner::create($data);
@@ -62,7 +63,7 @@ class PartnerController extends Controller
     }
 
     /**
-     * Menampilkan halaman form edit partner
+     * Menampilkan halaman formulir edit partner
      */
     public function edit(string $id)
     {
@@ -71,11 +72,11 @@ class PartnerController extends Controller
     }
 
     /**
-     * Memperbarui data partner di database (Sudah Fix Validasi Cloud)
+     * Memperbarui data partner di database (Aman untuk SQLite Cloud)
      */
     public function update(Request $request, string $id)
     {
-        // Validasi input edit data
+        // Validasi data input form edit
         $request->validate([
             'name' => 'required|string|max:255',
             'logo_url' => 'nullable|string|max:255',
@@ -84,9 +85,9 @@ class PartnerController extends Controller
         $partner = Partner::findOrFail($id);
         $data = $request->all();
 
-        // PENGAMAN DATABASE: Tetap jaga nilainya agar tidak null saat proses update berjalan
+        // FIX SQLITE CLOUD: Saat update, jika dikosongkan maka set langsung ke nilai null
         if (empty($data['logo_url'])) {
-            $data['logo_url'] = '';
+            $data['logo_url'] = null;
         }
 
         $partner->update($data);
