@@ -8,25 +8,16 @@ use Illuminate\Http\Request;
 
 class PartnerController extends Controller
 {
-    /**
-     * Menampilkan daftar partner dengan fitur pencarian (Soal 3)
-     */
     public function index(Request $request)
     {
-        // Mengambil input dari kolom search form HTML
         $search = $request->input('search');
 
-        // Jika ada input pencarian, lakukan filter dengan query LIKE
         if (!empty($search)) {
-            $partners = Partner::where('name', 'LIKE', '%' . $search . '%')
-                ->latest()
-                ->get();
+            $partners = Partner::where('name', 'LIKE', '%' . $search . '%')->latest()->get();
         } else {
-            // Jika kosong, tampilkan semua data partner
             $partners = Partner::latest()->get();
         }
 
-        // Mengirim data ke view beserta isi pencariannya
         return view('admin.partners.index', compact('partners', 'search'));
     }
 
@@ -39,9 +30,17 @@ class PartnerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'logo_url' => 'nullable|url|max:255', // Validasi format URL boleh kosong
         ]);
 
-        Partner::create($request->all());
+        $data = $request->all();
+
+        // Jika user tidak mengisi URL logo, isi dengan string kosong agar tidak error database
+        if (empty($data['logo_url'])) {
+            $data['logo_url'] = '';
+        }
+
+        Partner::create($data);
 
         return redirect()->route('admin.partners.index')->with('success', 'Partner berhasil ditambahkan!');
     }
@@ -56,10 +55,17 @@ class PartnerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'logo_url' => 'nullable|url|max:255',
         ]);
 
         $partner = Partner::findOrFail($id);
-        $partner->update($request->all());
+        $data = $request->all();
+
+        if (empty($data['logo_url'])) {
+            $data['logo_url'] = '';
+        }
+
+        $partner->update($data);
 
         return redirect()->route('admin.partners.index')->with('success', 'Partner berhasil diperbarui!');
     }
