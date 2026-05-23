@@ -9,9 +9,9 @@ class Partner extends Model
 {
     use HasFactory;
 
-    // Menentukan nama tabel di database
-    protected $table = 'partners';
-
-    // Mengizinkan kolom ini untuk diisi data (Mass Assignment)
-    protected $fillable = ['name', 'logo_url'];
+    // Pastikan 'logo_url' sudah terdaftar di dalam array fillable!
+    protected $fillable = [
+        'name',
+        'logo_url',
+    ];
 }
