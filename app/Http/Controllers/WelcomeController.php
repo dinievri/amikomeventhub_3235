@@ -2,19 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Partner;
+use App\Models\Category;
+use App\Models\Event;
 use Illuminate\Http\Request;
-use App\Models\Partner;   // Tambahkan ini agar bisa memanggil data Partner
-use App\Models\Category;  // Tambahkan ini agar bisa memanggil data Kategori
 
 class WelcomeController extends Controller
 {
+    /**
+     * Menampilkan halaman depan publik dengan data kategori & partner (Soal 4)
+     */
     public function index()
     {
-        // Mengambil semua data partner dan kategori dari database
-        $partners = Partner::all();
+        // Mengambil semua data dari database secara dinamis
+        $partners = Partner::latest()->get();
         $categories = Category::all();
+        
+        // Opsional: mengambil data event terbaru untuk halaman depan Anda
+        $events = Event::with('category')->latest()->take(6)->get();
 
-        // Mengirimkan data tersebut ke file view bernama 'welcome.blade.php'
-        return view('welcome', compact('partners', 'categories'));
+        // Mengirimkan variabel data ke file view welcome.blade.php
+        return view('welcome', compact('partners', 'categories', 'events'));
     }
 }

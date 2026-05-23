@@ -3,86 +3,117 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Category;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    public function index() {
+    /**
+     * Menampilkan daftar semua event
+     */
+    public function index()
+    {
         $events = Event::with('category')->latest()->get();
         return view('admin.events.index', compact('events'));
     }
 
-    public function create() {
+    /**
+     * Menampilkan form tambah event baru
+     */
+    public function create()
+    {
         $categories = Category::all();
         return view('admin.events.create', compact('categories'));
     }
 
-    public function store(Request $request) {
-        $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'title'       => 'required|string|max:255',
-            'description' => 'required',
-            'date'        => 'required|date',
-            'location'    => 'required',
-            'price'       => 'required|numeric',
-            'stock'       => 'required|numeric',
-            'poster'      => 'required|image|mimes:jpg,png,jpeg|max:2048',
+    /**
+     * Menyimpan data event baru ke database
+     */
+    public function store(Request $request)
+    {
+        // Validasi wajib menyertakan semua kolom database Anda
+        $request->validate([
+            'title'         => 'required|string|max:255',
+            'category_id'   => 'required|exists:categories,id',
+            'date'          => 'required',
+            'price'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'location'      => 'required|string|max:255',
+            'stock'         => 'required|integer|min:0',
+            'poster_path'   => 'nullable|string|max:255',
         ]);
 
-        if ($request->hasFile('poster')) {
-            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
+        // Ambil semua data inputan
+        $data = $request->all();
+
+        // Jaga-jaga jika poster kosong, beri nilai default teks
+        if (empty($data['poster_path'])) {
+            $data['poster_path'] = 'default.jpg';
         }
 
+        // Simpan ke database
         Event::create($data);
-        return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat.');
+
+        return redirect()->route('admin.events.index')->with('success', 'Event berhasil ditambahkan!');
     }
 
-    public function edit(Event $event) {
+    /**
+     * Menampilkan detail event
+     */
+    public function show(string $id)
+    {
+        $event = Event::findOrFail($id);
+        return view('admin.events.show', compact('event'));
+    }
+
+    /**
+     * Menampilkan form edit event
+     */
+    public function edit(string $id)
+    {
+        $event = Event::findOrFail($id);
         $categories = Category::all();
+
         return view('admin.events.edit', compact('event', 'categories'));
     }
 
-    public function update(Request $request, Event $event) {
-        $data = $request->validate([
-            'category_id' => 'required',
-            'title'       => 'required',
-            'description' => 'required',
-            'date'        => 'required',
-            'location'    => 'required',
-            'price'       => 'required|numeric',
-            'stock'       => 'required|numeric',
-            'poster'      => 'nullable|image|max:2048',
+    /**
+     * Memperbarui data event di database
+     */
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
+            'title'         => 'required|string|max:255',
+            'category_id'   => 'required|exists:categories,id',
+            'date'          => 'required',
+            'price'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'location'      => 'required|string|max:255',
+            'stock'         => 'required|integer|min:0',
+            'poster_path'   => 'nullable|string|max:255',
         ]);
 
-        if ($request->hasFile('poster')) {
-            if ($event->poster_path) Storage::disk('public')->delete($event->poster_path);
-            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
+        $event = Event::findOrFail($id);
+        
+        $data = $request->all();
+        if (empty($data['poster_path'])) {
+            $data['poster_path'] = 'default.jpg';
         }
 
         $event->update($data);
-        return redirect()->route('admin.events.index')->with('success', 'Event berhasil diperbarui.');
+
+        return redirect()->route('admin.events.index')->with('success', 'Event berhasil diperbarui!');
     }
 
-    public function destroy(Event $event) {
-        if ($event->poster_path) Storage::disk('public')->delete($event->poster_path);
-        $event->delete();
-        return redirect()->route('admin.events.index')->with('success', 'Event berhasil dihapus.');
-    }
-
-    // Tambahkan method ini agar tidak error saat diakses User
-    public function show($id) {
+    /**
+     * Menghapus data event
+     */
+    public function destroy(string $id)
+    {
         $event = Event::findOrFail($id);
-        return view('events.show', compact('event'));
-    }
+        $event->delete();
 
-    public function checkout() {
-        return view('events.checkout');
-    }
-
-    public function ticket() {
-        return view('events.ticket');
+        return redirect()->route('admin.events.index')->with('success', 'Event berhasil dihapus!');
     }
 }

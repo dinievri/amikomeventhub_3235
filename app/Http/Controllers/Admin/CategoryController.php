@@ -3,69 +3,72 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
-use App\Models\Category; // Tambahkan ini agar controller bisa mengakses database Kategori
 
 class CategoryController extends Controller
 {
     /**
-     * Soal 1: READ - Menampilkan daftar kategori
-     * Soal 3: SEARCH - Menyaring data berdasarkan input pencarian admin
+     * Menampilkan daftar kategori dengan fitur pencarian (Soal 3)
      */
     public function index(Request $request)
     {
+        // Mengambil input dari kolom search form HTML
         $search = $request->input('search');
 
-        // Melakukan pencarian menggunakan Eloquent WHERE LIKE jika input search diisi
-        $categories = Category::when($search, function ($query, $search) {
-            return $query->where('name', 'LIKE', "%{$search}%");
-        })->get();
+        // Jika ada input pencarian, lakukan filter dengan query LIKE
+        if (!empty($search)) {
+            $categories = Category::where('name', 'LIKE', '%' . $search . '%')
+                ->latest()
+                ->get();
+        } else {
+            // Jika kosong, tampilkan semua data kategori
+            $categories = Category::latest()->get();
+        }
 
-        // Mengembalikan ke file view blade (pastikan kamu membuat file ini nanti)
+        // Mengirim data ke view beserta isi pencariannya
         return view('admin.categories.index', compact('categories', 'search'));
     }
 
-    /**
-     * Soal 1: CREATE - Menyimpan kategori baru ke database
-     */
+    public function create()
+    {
+        return view('admin.categories.create');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
         ]);
 
-        Category::create([
-            'name' => $request->name
-        ]);
+        Category::create($request->all());
 
-        return redirect()->back()->with('success', 'Kategori berhasil ditambahkan!');
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil ditambahkan!');
     }
 
-    /**
-     * Soal 1: UPDATE - Mengubah nama kategori
-     */
-    public function update(Request $request, $id)
+    public function edit(string $id)
+    {
+        $category = Category::findOrFail($id);
+        return view('admin.categories.edit', compact('category'));
+    }
+
+    public function update(Request $request, string $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
         ]);
 
         $category = Category::findOrFail($id);
-        $category->update([
-            'name' => $request->name
-        ]);
+        $category->update($request->all());
 
-        return redirect()->back()->with('success', 'Kategori berhasil diperbarui!');
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil diperbarui!');
     }
 
-    /**
-     * Soal 1: DELETE - Menghapus kategori dari database
-     */
-    public function destroy($id)
+    public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
         $category->delete();
 
-        return redirect()->back()->with('success', 'Kategori berhasil dihapus!');
+        return redirect()->route('admin.categories.index')->with('success', 'Kategori berhasil dihapus!');
     }
 }

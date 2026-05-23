@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 // Import Controller
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\WelcomeController;
+
+// Controller Khusus Area Admin
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -20,7 +22,7 @@ use App\Http\Controllers\Admin\PartnerController;
 // Rute Publik / User Area (Frontend)
 // ==========================================
 
-// SOAL 4: Mengarahkan halaman utama publik (rute /) ke WelcomeController agar data bisa merender @foreach
+// Mengarahkan halaman utama publik (rute /) ke WelcomeController
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -29,27 +31,28 @@ Route::get('/katalog', [HomeController::class, 'katalog'])->name('katalog');
 Route::get('/bantuan', [HomeController::class, 'bantuan'])->name('bantuan');
 Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
 
-// Event untuk User
-Route::get('/event/{id}', [EventController::class, 'show'])->name('events.show');
-Route::get('/checkout', [EventController::class, 'checkout'])->name('checkout');
-Route::get('/my-ticket', [EventController::class, 'ticket'])->name('ticket');
+// PERBAIKAN: Rute Event untuk USER diarahkan ke HomeController (bukan Admin\EventController)
+Route::get('/event/{id}', [HomeController::class, 'showEvent'])->name('events.show');
+Route::get('/checkout', [HomeController::class, 'checkout'])->name('checkout');
+Route::get('/my-ticket', [HomeController::class, 'ticket'])->name('ticket');
 
 
 // ==========================================
 // Rute Admin Area (Backend)
 // ==========================================
-Route::group(['prefix' => 'admin'], function () { 
+// Menambahkan prefix '/admin' dan memberikan awalan nama 'admin.' untuk area admin
+Route::prefix('admin')->name('admin.')->group(function () { 
     
-    // Halaman Dashboard: /admin
-    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard'); 
+    // Halaman Dashboard -> URL: http://127.0.0.1:8000/admin | Nama Route: admin.dashboard
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard'); 
     
-    // SOAL 1 & 3: CRUD + Search Kategori (URL: /admin/categories, Nama Route: categories.index, categories.store, dll)
+    // CRUD Kategori -> URL: /admin/categories
     Route::resource('categories', CategoryController::class);
 
-    // SOAL 2 & 3: CRUD + Search Partner (URL: /admin/partners, Nama Route: partners.index, partners.store, dll)
+    // CRUD Partner -> URL: /admin/partners
     Route::resource('partners', PartnerController::class);
     
-    // CRUD Event bawaan template awal
+    // CRUD Event -> URL: /admin/events (Sudah aman, tidak bentrok lagi)
     Route::resource('events', EventController::class);
 
 });
