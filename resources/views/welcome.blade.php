@@ -173,7 +173,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
       @forelse($partners as $partner)
         <div class="bg-white border border-slate-100 rounded-2xl p-5 flex flex-col items-center justify-center h-36 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
-          <img src="{{ $partner->logo_url }}" alt="{{ $partner->name }}" class="max-h-14 max-w-full object-contain mb-3" onerror="this.src='https://placehold.co/200x100?text=Logo+Partner'">
+          <img src="{{ $partner->logo_url ?: 'https://placehold.co/200x100?text=Logo+Partner' }}" alt="{{ $partner->name }}" class="max-h-14 max-w-full object-contain mb-3" onerror="this.src='https://placehold.co/200x100?text=Logo+Partner'">
           <h5 class="text-xs font-bold text-slate-700 text-center tracking-tight line-clamp-1">{{ $partner->name }}</h5>
         </div>
       @empty

@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('partners', function (Blueprint $table) {
         $table->id(); // id
         $table->string('name'); // name
-        $table->string('logo_url'); // logo_url (Sesuai instruksi soal)
+        $table->string('logo_url')->nullable(); // logo_url (Sesuai instruksi soal)
         $table->timestamps(); // created_at dan updated_at
     });
 }
