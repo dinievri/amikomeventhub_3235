@@ -35,6 +35,9 @@ Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
 Route::get('/event/{id}', [HomeController::class, 'showEvent'])->name('events.show');
 Route::get('/checkout', [HomeController::class, 'checkout'])->name('checkout');
 Route::get('/my-ticket', [HomeController::class, 'ticket'])->name('ticket');
+Route::get('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'create'])->name('checkout.create');
+Route::post('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('transactions', [\App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
 
 
 // ==========================================
