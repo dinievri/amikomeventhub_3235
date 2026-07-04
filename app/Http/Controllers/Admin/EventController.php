@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -41,18 +42,17 @@ class EventController extends Controller
             'description'   => 'nullable|string',
             'location'      => 'required|string|max:255',
             'stock'         => 'required|integer|min:0',
-            'poster_path'   => 'nullable|string|max:255',
+            'poster'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // Ambil semua data inputan
-        $data = $request->all();
+        $data = $request->only(['title', 'category_id', 'date', 'price', 'description', 'location', 'stock']);
 
-        // Jaga-jaga jika poster kosong, beri nilai default teks
-        if (empty($data['poster_path'])) {
+        if ($request->hasFile('poster')) {
+            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
+        } else {
             $data['poster_path'] = 'default.jpg';
         }
 
-        // Simpan ke database
         Event::create($data);
 
         return redirect()->route('admin.events.index')->with('success', 'Event berhasil ditambahkan!');
@@ -91,14 +91,18 @@ class EventController extends Controller
             'description'   => 'nullable|string',
             'location'      => 'required|string|max:255',
             'stock'         => 'required|integer|min:0',
-            'poster_path'   => 'nullable|string|max:255',
+            'poster'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $event = Event::findOrFail($id);
-        
-        $data = $request->all();
-        if (empty($data['poster_path'])) {
-            $data['poster_path'] = 'default.jpg';
+
+        $data = $request->only(['title', 'category_id', 'date', 'price', 'description', 'location', 'stock']);
+
+        if ($request->hasFile('poster')) {
+            if ($event->poster_path && $event->poster_path !== 'default.jpg') {
+                Storage::disk('public')->delete($event->poster_path);
+            }
+            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
         $event->update($data);

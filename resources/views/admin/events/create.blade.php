@@ -18,7 +18,7 @@
     @endif
 
     <div class="bg-white rounded-lg shadow p-6">
-        <form action="{{ route('admin.events.store') }}" method="POST">
+        <form action="{{ route('admin.events.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-4">
@@ -63,8 +63,8 @@
             </div>
 
             <div class="mb-4">
-                <label for="poster_path" class="block text-sm font-semibold text-gray-700 mb-1">Nama File Poster (Opsional)</label>
-                <input type="text" name="poster_path" id="poster_path" value="{{ old('poster_path', 'default.jpg') }}" placeholder="Contoh: poster-acara.jpg" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 p-2.5 border">
+                <label for="poster" class="block text-sm font-semibold text-gray-700 mb-1">Poster Event (Opsional)</label>
+                <input type="file" name="poster" id="poster" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*">
             </div>
 
             <div class="mb-6">

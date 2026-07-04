@@ -21,17 +21,17 @@
                     <span>📊 Dashboard</span>
                 </a>
                 
-                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
+                <a href="{{ route('admin.events.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
                     <span>📅 Manage Events</span>
                 </a>
 
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 pt-4 mb-1">Data Master</p>
 
-                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
+                <a href="{{ route('admin.categories.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
                     <span>🏷️ Event Categories</span>
                 </a>
 
-                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
+                <a href="{{ route('admin.partners.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition">
                     <span>🤝 Partners</span>
                 </a>
             </nav>

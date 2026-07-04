@@ -1,59 +1,164 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
-        
-        <div class="text-center">
-            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">
-                Checkout Tiket
-            </h2>
-            <p class="mt-2 text-sm text-slate-500">
-                Silakan isi data diri Anda dengan benar untuk pemesanan tiket.
-            </p>
+    <main class="max-w-3xl mx-auto px-6 py-20">
+        <div class="mb-12">
+            <a href="event-detail.html" class="text-indigo-600 font-bold flex items-center gap-2 mb-6 hover:text-indigo-800 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Kembali ke Event
+            </a>
+            <h1 class="text-4xl font-extrabold">Checkout</h1>
+            <p class="text-slate-500 mt-2">Lengkapi data Anda untuk mendapatkan tiket.</p>
         </div>
 
-        <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 flex flex-col justify-between space-y-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-500">Detail Tiket</span>
-            <h3 class="text-xl font-bold text-slate-800">
-                {{ $ticket->name ?? 'Nama Tiket Tidak Ditemukan' }}
-            </h3>
-            <p class="text-2xl font-black text-indigo-600 mt-2">
-                Rp {{ number_format($ticket->price ?? 0, 0, ',', '.') }}
-            </p>
-        </div>
-
-        <form action="{{ url('/checkout/' . ($ticket->id ?? '')) }}" method="POST" class="mt-8 space-y-6">
-            @csrf
-            
-            <div class="space-y-4">
-                <div>
-                    <label for="nama" class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
-                    <input type="text" id="nama" name="nama" placeholder="Masukkan nama lengkap" required
-                        class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 sm:text-sm transition duration-200 bg-slate-50/50">
+        <div class="grid grid-cols-1 gap-8">
+            <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                <h3 class="text-xl font-bold mb-6 border-b pb-4">Pesanan Anda</h3>
+                <div class="flex gap-6 items-start">
+                    <img src="{{ asset('assets/concert.png') }}" alt="Event" class="w-24 h-24 rounded-2xl object-cover">
+                    <div>
+                        <h4 class="font-extrabold text-lg">Jazz Night 2024: A Celebration</h4>
+                        <p class="text-slate-500">16 Nov 2024 • The Blue Note Lounge</p>
+                        <p class="text-indigo-600 font-bold mt-2">1 x Rp 150.000</p>
+                    </div>
                 </div>
-
-                <div>
-                    <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Alamat Email</label>
-                    <input type="email" id="email" name="email" placeholder="contoh@email.com" required
-                        class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 sm:text-sm transition duration-200 bg-slate-50/50">
-                </div>
-
-                <div>
-                    <label for="hp" class="block text-sm font-semibold text-slate-700 mb-1">Nomor HP / WhatsApp</label>
-                    <input type="tel" id="hp" name="hp" placeholder="08xxxxxxxxxx" required
-                        class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 sm:text-sm transition duration-200 bg-slate-50/50">
+                <div class="mt-8 pt-6 border-t space-y-3">
+                    <div class="flex justify-between text-slate-500">
+                        <span>Harga Tiket</span>
+                        <span>Rp 150.000</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500">
+                        <span>Biaya Layanan</span>
+                        <span>Rp 5.000</span>
+                    </div>
+                    <div class="flex justify-between text-2xl font-black mt-4 pt-4 border-t">
+                        <span>Total Bayar</span>
+                        <span class="text-indigo-600">Rp 155.000</span>
+                    </div>
                 </div>
             </div>
 
-            <div>
-                <button type="submit" 
-                    class="w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 transition duration-200 shadow-lg shadow-indigo-600/20">
-                    Konfirmasi & Bayar Sekarang
+            <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                <h3 class="text-xl font-bold mb-6 italic text-indigo-600 underline underline-offset-8">📦 Data Pemesan
+                    (Tanpa Login)</h3>
+                <form class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Nama
+                            Lengkap</label>
+                        <input type="text" placeholder="Masukkan nama sesuai identitas"
+                            class="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 outline-none transition font-medium"
+                            required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Email
+                                Aktif</label>
+                            <input type="email" placeholder="contoh@gmail.com"
+                                class="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 outline-none transition font-medium"
+                                required>
+                            <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-tighter">*E-Ticket
+                                akan dikirim ke email ini</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">No.
+                                WhatsApp</label>
+                            <input type="tel" placeholder="08xxxxxxx"
+                                class="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 outline-none transition font-medium"
+                                required>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="showMidtrans()"
+                        class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all">
+                        Bayar Sekarang
+                    </button>
+                    <p class="text-center text-xs text-slate-400">Dengan menekan tombol di atas, Anda menyetujui Syarat
+                        & Ketentuan kami.</p>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="midtrans-overlay"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl animate-bounce-in">
+            <div class="bg-slate-50 p-6 flex justify-between items-center border-b">
+                <img src="https://midtrans.com/assets/img/logo-dark.png" alt="Midtrans Logo" class="h-6">
+                <button onclick="hideMidtrans()" class="p-2 hover:bg-slate-200 rounded-full transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18">
+                        </path>
+                    </svg>
                 </button>
             </div>
-        </form>
-        
+            <div class="p-8 text-center">
+                <p class="text-slate-500 font-medium">Total Tagihan</p>
+                <h2 class="text-3xl font-black text-indigo-700 my-2">Rp 155.000</h2>
+                <p class="text-xs text-slate-400">Order ID #TRX-99210</p>
+
+                <div class="mt-8 space-y-4">
+                    <button onclick="window.location.href='ticket.html'"
+                        class="w-full py-4 border-2 border-indigo-100 rounded-2xl flex justify-between items-center px-6 hover:border-indigo-600 transition group">
+                        <span class="font-bold group-hover:text-indigo-600">GoPay / QRIS</span>
+                        <span class="text-indigo-400">→</span>
+                    </button>
+                    <button
+                        class="w-full py-4 border-2 border-indigo-100 rounded-2xl flex justify-between items-center px-6 hover:border-indigo-600 transition group opacity-50 cursor-not-allowed">
+                        <span class="font-bold">Virtual Account (BNI, BRI)</span>
+                        <span class="text-indigo-400">→</span>
+                    </button>
+                    <button
+                        class="w-full py-4 border-2 border-indigo-100 rounded-2xl flex justify-between items-center px-6 hover:border-indigo-600 transition group opacity-50 cursor-not-allowed">
+                        <span class="font-bold">Kartu Debit/Kredit</span>
+                        <span class="text-indigo-400">→</span>
+                    </button>
+                </div>
+
+                <div
+                    class="mt-12 flex items-center justify-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-widest">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    Secure Checkout by Midtrans
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+
+    <script>
+        function showMidtrans() {
+            const overlay = document.getElementById('midtrans-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+        function hideMidtrans() {
+            const overlay = document.getElementById('midtrans-overlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+    </script>
+
+    <style>
+        @keyframes bounce-in {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .animate-bounce-in {
+            animation: bounce-in 0.4s ease-out forwards;
+        }
+    </style>
 @endsection

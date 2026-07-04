@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -49,10 +50,9 @@ class CheckoutController extends Controller
             'status'         => 'pending'
         ]);
 
-        \Midtrans\Config::$serverKey =
-            env('MIDTRANS_SERVER_KEY');
+        \Midtrans\Config::$serverKey = Config::get('midtrans.server_key');
 
-        \Midtrans\Config::$isProduction = false;
+        \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', false);
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
@@ -122,10 +122,9 @@ class CheckoutController extends Controller
             $order_id
         )->firstOrFail();
 
-        \Midtrans\Config::$serverKey =
-            env('MIDTRANS_SERVER_KEY');
+        \Midtrans\Config::$serverKey = Config::get('midtrans.server_key');
 
-        \Midtrans\Config::$isProduction = false;
+        \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', false);
 
         try {
 

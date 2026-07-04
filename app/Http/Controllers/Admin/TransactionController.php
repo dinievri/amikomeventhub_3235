@@ -1,21 +1,16 @@
-public function payment($order_id)
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+
+class TransactionController extends Controller
 {
-    $categories =
-        \App\Models\Category::all();
-
-    $transaction =
-        Transaction::with('event')
-        ->where(
-            'order_id',
-            $order_id
-        )
-        ->firstOrFail();
-
-    return view(
-        'checkout.payment',
-        compact(
-            'transaction',
-            'categories'
-        )
-    );
+    public function index()
+    {
+        $transactions = Transaction::with('event')->latest()->get();
+        return view('admin.transactions.index', compact('transactions'));
+    }
 }
