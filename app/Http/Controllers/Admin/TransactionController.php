@@ -1,16 +1,21 @@
-<?php
-
-namespace App\Http\Controllers\Admin;
-
-use App\Http\Controllers\Controller;
-use App\Models\Transaction;
-
-class TransactionController extends Controller
+public function payment($order_id)
 {
-    public function index()
-    {
-        // Mengambil transaksi terbaru dengan pembatasan 20 baris/halaman
-        $transactions = Transaction::with('event')->latest()->paginate(20);
-        return view('admin.transactions.index', compact('transactions'));
-    }
+    $categories =
+        \App\Models\Category::all();
+
+    $transaction =
+        Transaction::with('event')
+        ->where(
+            'order_id',
+            $order_id
+        )
+        ->firstOrFail();
+
+    return view(
+        'checkout.payment',
+        compact(
+            'transaction',
+            'categories'
+        )
+    );
 }
