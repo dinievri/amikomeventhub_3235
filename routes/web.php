@@ -41,6 +41,7 @@ Route::get('/payment/{order_id}', [CheckoutController::class, 'payment'])->name(
 Route::get('/success/{order_id}', [CheckoutController::class, 'success'])->name('checkout.success');
 
 // Webhook / Callback Midtrans (Harus bebas dari middleware CSRF & Auth)
+// Route ini yang akan ditembak oleh sistem Midtrans secara otomatis
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
 
@@ -74,8 +75,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // (Wajib sudah login dan role admin)
     Route::middleware(['auth', 'admin'])->group(function () {
         
-        // Dashboard
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        // Opsional: Redirect dari /admin ke /admin/dashboard
+        Route::get('/', function() {
+            return redirect()->route('admin.dashboard');
+        });
+
+        // PERBAIKAN SESUAI MODUL: Path disesuaikan menjadi /dashboard 
+        // Sehingga URL yang diakses adalah localhost:8000/admin/dashboard
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Redirect legacy /admin/events/categories URL to the correct categories page
         Route::redirect('events/categories', 'categories');

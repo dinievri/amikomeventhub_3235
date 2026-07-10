@@ -12,9 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // --- TAMBAHKAN KODE ALIAS INI ---
+        // --- KODE ALIAS MIDDLEWARE ADMIN ---
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        ]);
+
+        // --- TAMBAHAN MODUL 12: Pengecualian CSRF untuk Webhook Midtrans ---
+        // Tanpa kode ini, notifikasi pembayaran dari Midtrans akan ditolak (Error 419)
+        $middleware->validateCsrfTokens(except: [
+            '/midtrans/callback',
         ]);
         
     })

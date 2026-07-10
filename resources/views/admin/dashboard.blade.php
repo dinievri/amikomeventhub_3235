@@ -25,7 +25,7 @@
             </svg>
         </div>
         <p class="text-slate-400 text-sm font-bold uppercase mb-1">Total Pendapatan</p>
-        <h3 class="text-2xl font-black text-slate-800">Rp 12.450.000</h3>
+        <h3 class="text-2xl font-black text-slate-800">Rp {{ number_format($totalRevenue ?? 0, 0, ',', '.') }}</h3>
     </div>
 
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -35,7 +35,7 @@
             </svg>
         </div>
         <p class="text-slate-400 text-sm font-bold uppercase mb-1">Tiket Terjual</p>
-        <h3 class="text-2xl font-black text-slate-800">1.284</h3>
+        <h3 class="text-2xl font-black text-slate-800">{{ $totalOrders ?? 0 }}</h3>
     </div>
 
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -45,7 +45,7 @@
             </svg>
         </div>
         <p class="text-slate-400 text-sm font-bold uppercase mb-1">Event Aktif</p>
-        <h3 class="text-2xl font-black text-slate-800">8 Event</h3>
+        <h3 class="text-2xl font-black text-slate-800">{{ $totalEvents ?? 0 }} Event</h3>
     </div>
 
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -55,48 +55,59 @@
             </svg>
         </div>
         <p class="text-slate-400 text-sm font-bold uppercase mb-1">Pesanan Pending</p>
-        <h3 class="text-2xl font-black text-slate-800">12 Pesanan</h3>
+        @php
+            $pendingOrders = \App\Models\Transaction::where('status', 'pending')->count();
+        @endphp
+        <h3 class="text-2xl font-black text-slate-800">{{ $pendingOrders }} Pesanan</h3>
     </div>
 </div>
 
 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
     <div class="p-8 border-b flex justify-between items-center">
         <h3 class="font-black text-xl text-slate-800">Transaksi Terakhir</h3>
-        <a href="#" class="text-indigo-600 font-bold hover:underline transition">Lihat Semua</a>
+        <a href="{{ route('admin.transactions.index') }}" class="text-indigo-600 font-bold hover:underline transition">Lihat Semua</a>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
                 <tr>
-                    <th class="px-8 py-4">Pembeli</th>
-                    <th class="px-8 py-4">Event</th>
+                    <th class="px-8 py-4">Pembeli / Tanggal</th>
+                    <th class="px-8 py-4">Event / Order ID</th>
                     <th class="px-8 py-4">Status</th>
                     <th class="px-8 py-4">Total</th>
                 </tr>
             </thead>
             <tbody class="divide-y border-t">
+                @forelse($transactions ?? [] as $trx)
                 <tr class="hover:bg-slate-50 transition">
                     <td class="px-8 py-6">
-                        <p class="font-bold uppercase tracking-wide text-sm text-slate-700">Donni Prabowo</p>
-                        <p class="text-xs text-slate-400">donni@example.com</p>
+                        <p class="font-bold uppercase tracking-wide text-sm text-slate-700">{{ $trx->customer_name }}</p>
+                        <p class="text-xs text-slate-400">{{ $trx->created_at->format('d M Y H:i') }}</p>
                     </td>
-                    <td class="px-8 py-6 font-medium text-slate-600">Jazz Night 2024</td>
                     <td class="px-8 py-6">
-                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold uppercase">Success</span>
+                        <p class="font-medium text-slate-600">{{ $trx->event->title ?? '-' }}</p>
+                        <p class="text-xs text-slate-400 font-mono">ID: {{ $trx->order_id }}</p>
                     </td>
-                    <td class="px-8 py-6 font-black text-indigo-600">Rp 155.000</td>
+                    <td class="px-8 py-6">
+                        @if($trx->status === 'settlement' || $trx->status === 'success')
+                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold uppercase">Success</span>
+                        @elseif($trx->status === 'pending')
+                            <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold uppercase">Pending</span>
+                        @else
+                            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-bold uppercase">Failed</span>
+                        @endif
+                    </td>
+                    <td class="px-8 py-6 font-black text-indigo-600">
+                        Rp {{ number_format($trx->total_price, 0, ',', '.') }}
+                    </td>
                 </tr>
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-8 py-6">
-                        <p class="font-bold uppercase tracking-wide text-sm text-slate-700">Maya Sari</p>
-                        <p class="text-xs text-slate-400">maya@example.com</p>
+                @empty
+                <tr>
+                    <td colspan="4" class="px-8 py-10 text-center text-slate-500 font-medium">
+                        Belum ada data transaksi.
                     </td>
-                    <td class="px-8 py-6 font-medium text-slate-600">AI & Future Workshop</td>
-                    <td class="px-8 py-6">
-                        <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold uppercase">Pending</span>
-                    </td>
-                    <td class="px-8 py-6 font-black text-indigo-600">Rp 55.000</td>
                 </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
