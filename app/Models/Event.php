@@ -6,6 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Event extends Model
 {
+    public function organization()
+{
+    return $this->belongsTo(Organization::class);
+}
+        public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    // Helper untuk menghitung rata-rata rating
+    public function averageRating()
+    {
+        return round($this->reviews()->avg('rating'), 1);
+    }
     // Mendaftarkan kolom database agar bisa disimpan menggunakan teknik Mass Assignment
     protected $fillable = [
         'category_id', 

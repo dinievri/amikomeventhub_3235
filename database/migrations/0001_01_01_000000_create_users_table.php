@@ -16,9 +16,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             
-            // --- TAMBAHAN BARU: Kolom role ditambahkan di sini ---
+            // Password dibuat nullable agar user login via Google tidak wajib punya password
+            $table->string('password')->nullable();
+            
+            // Kolom untuk Login via Google Socialite
+            $table->string('google_id')->nullable();
+            
+            // Kolom role bawaan
             $table->string('role')->default('user');
             
             $table->rememberToken();

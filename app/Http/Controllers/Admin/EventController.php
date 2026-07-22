@@ -15,8 +15,20 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Event::with('category')->latest()->get();
-        return view('admin.events.index', compact('events'));
+      $user = auth()->user();
+
+    // LOGIKA MULTI-TENANT:
+    // Jika Role = Admin (Superadmin), tampilkan SELURUH event dari semua organisasi.
+    if ($user->role === 'admin') {
+        $events = Event::with('organization')->latest()->paginate(10);
+    } else {
+        // Jika Role = Panitia/HIMA, HANYA tampilkan event milik organisasinya sendiri
+        $events = Event::whereHas('organization', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->latest()->paginate(10);
+    }
+
+    return view('admin.events.index', compact('events'));
     }
 
     /**
@@ -33,30 +45,28 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi wajib menyertakan semua kolom database Anda
         $request->validate([
-            'title'         => 'required|string|max:255',
-            'category_id'   => 'required|exists:categories,id',
-            'date'          => 'required',
-            'price'         => 'required|numeric|min:0',
-            'description'   => 'nullable|string',
-            'location'      => 'required|string|max:255',
-            'stock'         => 'required|integer|min:0',
-            'poster'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+        'title' => 'required|string|max:255',
+        'description' => 'required',
+        'price' => 'required|numeric',
+        // tambahkan validasi lainnya...
+    ]);
 
-        $data = $request->only(['title', 'category_id', 'date', 'price', 'description', 'location', 'stock']);
+    $user = auth()->user();
+    
+    // Ambil ID Organisasi milik user yang sedang login
+    $organizationId = $user->organization ? $user->organization->id : null;
 
-        if ($request->hasFile('poster')) {
-            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
-        } else {
-            $data['poster_path'] = 'default.jpg';
-        }
+    Event::create([
+        'title' => $request->title,
+        'description' => $request->description,
+        'price' => $request->price,
+        'organization_id' => $organizationId, // Automatic assignment ke tenant panitia
+        // field lainnya...
+    ]);
 
-        Event::create($data);
-
-        return redirect()->route('admin.events.index')->with('success', 'Event berhasil ditambahkan!');
-    }
+    return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat!');
+}
 
     /**
      * Menampilkan detail event
