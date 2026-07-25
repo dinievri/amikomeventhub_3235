@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Review; // <-- Perbaikan: Impor model Review
-use App\Models\Organization;
 
 class Event extends Model
 {
@@ -16,15 +14,35 @@ class Event extends Model
         'organization_id',
         'title',
         'description',
-        'price',
+        'date',
         'location',
-        'event_date',
+        'price',
+        'stock',
+        'poster_path',
     ];
 
-    // Relasi ke Organization
+    protected $casts = [
+        'date' => 'datetime',
+        'price' => 'integer',
+        'stock' => 'integer',
+    ];
+
+    // Relasi ke Category
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    // Relasi ke Organization (multi-tenant)
     public function organization()
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    // Relasi ke Transaction
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
     }
 
     // Relasi ke Review

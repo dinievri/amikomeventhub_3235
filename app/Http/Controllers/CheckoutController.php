@@ -27,15 +27,43 @@ class CheckoutController extends Controller
             'customer_phone' => 'required|string',
         ]);
 
-        // Cek jika harga event 0 atau kosong (Midtrans menolak nominal 0)
+        $orderId = 'TRX-' . time() . '-' . strtoupper(Str::random(5));
         $totalPrice = (int) $event->price;
+
+        // ==========================================
+        // 1. LOGIKA UNTUK EVENT GRATIS (PRICE <= 0)
+        // ==========================================
         if ($totalPrice <= 0) {
-            return back()->with('error', 'Harga tiket tidak valid untuk transaksi.');
+            // Cek stok jika ada kolom stok di tabel event
+            if (isset($event->stock) && $event->stock < 1) {
+                return back()->with('error', 'Maaf, stok tiket untuk event gratis ini sudah habis.');
+            }
+
+            // Langsung simpan transaksi dengan status 'success' (Bypass Midtrans)
+            $transaction = Transaction::create([
+                'event_id'       => $event->id,
+                'order_id'       => $orderId,
+                'customer_name'  => $request->customer_name,
+                'customer_email' => $request->customer_email,
+                'customer_phone' => $request->customer_phone,
+                'total_price'    => 0,
+                'status'         => 'success', // Langsung dianggap LUNAS/BERHASIL
+                'snap_token'     => null       // Tidak memerlukan token Midtrans
+            ]);
+
+            // Kurangi stok jika event menggunakan sistem kuota/stok
+            if (isset($event->stock)) {
+                $event->decrement('stock');
+            }
+
+            // Redirect langsung ke halaman sukses (E-Ticket)
+            return redirect()->route('checkout.success', $transaction->order_id)
+                             ->with('success', 'Pendaftaran berhasil! E-Ticket Anda telah diterbitkan.');
         }
 
-        $orderId = 'TRX-' . time() . '-' . strtoupper(Str::random(5));
-
-        // 1. Buat Transaksi di DB lebih dulu
+        // ==========================================
+        // 2. LOGIKA UNTUK EVENT BERBAYAR (MIDTRANS)
+        // ==========================================
         $transaction = Transaction::create([
             'event_id'       => $event->id,
             'order_id'       => $orderId,
@@ -46,8 +74,7 @@ class CheckoutController extends Controller
             'status'         => 'pending'
         ]);
 
-        // 2. Setup Konfigurasi Midtrans
-        // Gunakan env() langsung sebagai fallback jika config/midtrans.php belum di-set
+        // Setup Konfigurasi Midtrans
         \Midtrans\Config::$serverKey = Config::get('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
         \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', env('MIDTRANS_IS_PRODUCTION', false));
         \Midtrans\Config::$isSanitized = true;
@@ -66,10 +93,8 @@ class CheckoutController extends Controller
         ];
 
         try {
-            // Ambil token dari Midtrans
             $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-            // Simpan snap token ke DB
             $transaction->update([
                 'snap_token' => $snapToken
             ]);
@@ -77,7 +102,6 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.payment', $transaction->order_id);
 
         } catch (Exception $e) {
-            // Jika koneksi Midtrans gagal/timeout, ubah status transaksi agar tidak menggantung
             $transaction->update(['status' => 'failed']);
 
             return back()->with('error', 'Gagal membuat kode bayar Midtrans: ' . $e->getMessage());
@@ -92,6 +116,12 @@ class CheckoutController extends Controller
             ->where('order_id', $order_id)
             ->firstOrFail();
 
+        // Jika transaksi ini sudah berstatus success (misal hasil bypass event gratis), 
+        // langsung alihkan ke halaman success agar tidak bisa masuk ke halaman payment
+        if ($transaction->status === 'success') {
+            return redirect()->route('checkout.success', $transaction->order_id);
+        }
+
         return view('checkout.payment', compact('transaction', 'categories'));
     }
 
@@ -101,17 +131,20 @@ class CheckoutController extends Controller
 
         $transaction = Transaction::where('order_id', $order_id)->firstOrFail();
 
-        \Midtrans\Config::$serverKey = Config::get('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
-        \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', env('MIDTRANS_IS_PRODUCTION', false));
+        // Jalankan pengecekan status Midtrans HANYA jika harganya > 0 dan statusnya belum success
+        if ($transaction->total_price > 0 && $transaction->status !== 'success') {
+            \Midtrans\Config::$serverKey = Config::get('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
+            \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', env('MIDTRANS_IS_PRODUCTION', false));
 
-        try {
-            $midtransStatus = \Midtrans\Transaction::status($order_id);
+            try {
+                $midtransStatus = \Midtrans\Transaction::status($order_id);
 
-            if (in_array($midtransStatus->transaction_status, ['capture', 'settlement'])) {
-                $transaction->update(['status' => 'success']);
+                if (in_array($midtransStatus->transaction_status, ['capture', 'settlement'])) {
+                    $transaction->update(['status' => 'success']);
+                }
+            } catch (Exception $e) {
+                // Biarkan halaman success tetap muncul meskipun pengecekan API timeout
             }
-        } catch (Exception $e) {
-            // Biarkan halaman success tetap muncul meskipun pengecekan status API timeout
         }
 
         return view('checkout.success', compact('transaction', 'categories'));

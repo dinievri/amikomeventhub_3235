@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -21,19 +21,19 @@ class SocialiteController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
 
-            $user = User::updateOrCreate([
+            $customer = Customer::updateOrCreate([
                 'email' => $googleUser->getEmail(),
             ], [
                 'name' => $googleUser->getName(),
                 'google_id' => $googleUser->getId(),
-                'role' => 'user', // Default role
             ]);
 
-            Auth::login($user);
+            // Login ke guard "customer", BUKAN guard "web" (guard web khusus Admin/Organizer)
+            Auth::guard('customer')->login($customer);
 
-            return redirect()->intended('/');
+            return redirect()->route('welcome')->with('success', 'Berhasil login dengan Google, silakan lanjutkan pemesanan tiket.');
         } catch (\Exception $e) {
-            return redirect('/login')->with('error', 'Gagal login menggunakan akun Google.');
+            return redirect('/')->with('error', 'Gagal login menggunakan akun Google: ' . $e->getMessage());
         }
     }
 }

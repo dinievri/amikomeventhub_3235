@@ -56,8 +56,7 @@
 
                     <div class="mt-8">
 
-                        <a
-                            href="{{ route('checkout.create',$event->id) }}"
+                        <a href="{{ route('checkout.create',$event->id) }}"
                             class="block text-center bg-indigo-600 hover:bg-indigo-700 transition text-white font-semibold py-4 rounded-xl shadow-lg shadow-indigo-100">
 
                             Pesan Tiket
@@ -76,7 +75,7 @@
 
     {{-- ================= SECTION RATING & REVIEWS ================= --}}
     <div class="bg-white rounded-3xl shadow-xl p-10">
-        
+
         {{-- Alert Notifikasi Status --}}
         @if(session('success'))
             <div class="bg-green-100 border border-green-200 text-green-700 p-4 rounded-2xl mb-6 font-semibold">
@@ -114,8 +113,8 @@
             </div>
         </div>
 
-        {{-- Form Tambah Ulasan --}}
-        @auth
+        {{-- Form Tambah Ulasan (khusus customer yang login via Google) --}}
+        @auth('customer')
             <form action="{{ route('reviews.store', $event->id) }}" method="POST" class="bg-slate-50 border border-slate-200 p-6 rounded-2xl mb-10">
                 @csrf
                 <h3 class="text-lg font-bold text-slate-800 mb-4">
@@ -153,7 +152,7 @@
         @else
             <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl mb-10 text-center">
                 <p class="text-slate-600">
-                    Ingin memberikan ulasan? <a href="/login" class="text-indigo-600 font-bold hover:underline">Sign In / Login</a> terlebih dahulu.
+                    Ingin memberikan ulasan? <a href="{{ route('google.login') }}" class="text-indigo-600 font-bold hover:underline">Sign In / Login dengan Google</a> terlebih dahulu.
                 </p>
             </div>
         @endauth
@@ -165,10 +164,10 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">
-                                {{ strtoupper(substr($review->user->name, 0, 2)) }}
+                                {{ strtoupper(substr($review->transaction->customer_name ?? 'NN', 0, 2)) }}
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-900">{{ $review->user->name }}</h4>
+                                <h4 class="font-bold text-slate-900">{{ $review->transaction->customer_name ?? 'Anonim' }}</h4>
                                 <span class="text-xs text-slate-400">{{ $review->created_at->diffForHumans() }}</span>
                             </div>
                         </div>

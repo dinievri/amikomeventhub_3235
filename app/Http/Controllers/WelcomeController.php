@@ -19,20 +19,23 @@ class WelcomeController extends Controller
         $partners = Partner::latest()->get();
 
         // Tambahkan ini jika di halaman welcome kamu butuh nampilkan list event
-        $events = Event::latest()->get(); 
+        $events = Event::latest()->get();
 
         return view('welcome', compact('categories', 'partners', 'events'));
     }
 
     /**
-     * TAMBAHKAN FUNGSI INI: Untuk menampilkan detail event (Biar ga ngeloop ke admin)
+     * Menampilkan detail event (Biar ga ngeloop ke admin)
      */
     public function showEvent(Event $event)
     {
         $categories = Category::all();
-        
-        // Mengarah ke file resources/views/show.blade.php atau resources/views/events/show.blade.php
-        // Sesuaikan dengan letak file detail event kamu ya!
-        return view('show', compact('event', 'categories')); 
+
+        // Load relasi reviews sekaligus, biar $event->reviews di Blade bisa langsung dipakai
+        // tanpa query berulang (N+1 problem)
+        $event->load('reviews');
+
+        // Mengarah ke file resources/views/show.blade.php
+        return view('show', compact('event', 'categories'));
     }
 }

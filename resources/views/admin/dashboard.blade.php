@@ -17,6 +17,7 @@
     </div>
 </header>
 
+{{-- Ringkasan Widget Stats --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
         <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
@@ -62,6 +63,20 @@
     </div>
 </div>
 
+{{-- Section Grafik Statistik --}}
+<div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm mb-10">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h3 class="font-black text-xl text-slate-800">Grafik Pertumbuhan Transaksi</h3>
+            <p class="text-xs text-slate-400 font-medium">Statistik penjualan tiket berhasil per bulan (Tahun ini)</p>
+        </div>
+    </div>
+    <div class="w-full h-80">
+        <canvas id="transactionChart"></canvas>
+    </div>
+</div>
+
+{{-- Tabel Transaksi Terakhir --}}
 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
     <div class="p-8 border-b flex justify-between items-center">
         <h3 class="font-black text-xl text-slate-800">Transaksi Terakhir</h3>
@@ -112,4 +127,56 @@
         </table>
     </div>
 </div>
+
+{{-- Library Chart.js CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('transactionChart').getContext('2d');
+        
+        // Gradient fill untuk area bawah grafik
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                datasets: [{
+                    label: 'Jumlah Transaksi',
+                    data: @json($chartData ?? array_fill(0, 12, 0)),
+                    borderColor: '#6366f1',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#6366f1',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 @endsection

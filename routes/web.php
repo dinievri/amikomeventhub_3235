@@ -25,21 +25,21 @@ use App\Http\Controllers\Admin\CheckInController;
 |--------------------------------------------------------------------------
 */
 
-// FIX UTAMA: Mengubah fallback /login ke google.login agar TIDAK INFINITE REDIRECT ke admin.login
+// Fallback /login untuk customer diarahkan ke Google Login (dipakai otomatis oleh middleware auth:customer)
 Route::get('/login', function () {
     return redirect()->route('google.login');
 })->name('login');
 
 
 // ======================================================
-// LOGIN GOOGLE (SOCIALITE) - DI LUAR GRUP ADMIN
+// LOGIN GOOGLE (SOCIALITE) - UNTUK CUSTOMER, DI LUAR GRUP ADMIN
 // ======================================================
 Route::get('/auth/google', [SocialiteController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCallback']);
 
 
 // ======================================================
-// FRONTEND & CHECKOUT AREA (Publik / Guest Checkout)
+// FRONTEND & CHECKOUT AREA (Publik / Guest Checkout / Boleh Tanpa Login)
 // ======================================================
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 Route::get('/event/{event}', [WelcomeController::class, 'showEvent'])->name('events.show');
@@ -53,24 +53,25 @@ Route::get('/success/{order_id}', [CheckoutController::class, 'success'])->name(
 // Webhook / Callback Midtrans
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
+// Halaman statis publik (TIDAK butuh login, sesuai modul awal)
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/profil', [HomeController::class, 'profil'])->name('profil');
+Route::get('/katalog', [HomeController::class, 'katalog'])->name('katalog');
+Route::get('/bantuan', [HomeController::class, 'bantuan'])->name('bantuan');
+Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
+Route::get('/my-ticket', [HomeController::class, 'ticket'])->name('ticket');
+
 
 // ======================================================
-// HALAMAN STATIS / MEMBER & REVIEWS
+// REVIEW (KHUSUS CUSTOMER YANG SUDAH LOGIN GOOGLE)
 // ======================================================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:customer'])->group(function () {
     Route::post('/events/{event}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/profil', [HomeController::class, 'profil'])->name('profil');
-    Route::get('/katalog', [HomeController::class, 'katalog'])->name('katalog');
-    Route::get('/bantuan', [HomeController::class, 'bantuan'])->name('bantuan');
-    Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
-    Route::get('/my-ticket', [HomeController::class, 'ticket'])->name('ticket');
 });
 
 
 // ======================================================
-// ADMIN AREA 
+// ADMIN AREA
 // ======================================================
 Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -81,8 +82,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // 4. Panel Administrasi
     Route::middleware(['auth', 'admin'])->group(function () {
-        
-        Route::get('/', function() {
+
+        Route::get('/', function () {
             return redirect()->route('admin.dashboard');
         });
 

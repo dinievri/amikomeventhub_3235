@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::create('reviews', function (Blueprint $table) {
-       $table->id();
-       $table->foreignId('event_id')->constrained()->cascadeOnDelete();
-       $table->foreignId('transaction_id')->constrained()->cascadeOnDelete();
-       $table->tinyInteger('rating'); // 1-5
-       $table->text('comment')->nullable();
-       $table->timestamps();
-    });
+        Schema::create('reviews', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
     }
 
     /**
