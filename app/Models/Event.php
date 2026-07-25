@@ -2,15 +2,33 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Review; // <-- Perbaikan: Impor model Review
+use App\Models\Organization;
 
 class Event extends Model
 {
+    use HasFactory;
+
+    protected $fillable = [
+        'category_id',
+        'organization_id',
+        'title',
+        'description',
+        'price',
+        'location',
+        'event_date',
+    ];
+
+    // Relasi ke Organization
     public function organization()
-{
-    return $this->belongsTo(Organization::class);
-}
-        public function reviews()
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    // Relasi ke Review
+    public function reviews()
     {
         return $this->hasMany(Review::class);
     }
@@ -18,25 +36,6 @@ class Event extends Model
     // Helper untuk menghitung rata-rata rating
     public function averageRating()
     {
-        return round($this->reviews()->avg('rating'), 1);
-    }
-    // Mendaftarkan kolom database agar bisa disimpan menggunakan teknik Mass Assignment
-    protected $fillable = [
-        'category_id', 
-        'title', 
-        'description', 
-        'date',
-        'location', 
-        'price', 
-        'stock', 
-        'poster_path'
-    ];
-
-    /**
-     * Hubungan Relasi: Setiap Event terhubung ke satu Kategori
-     */
-    public function category() 
-    {
-        return $this->belongsTo(Category::class);
+        return round($this->reviews()->avg('rating') ?? 0, 1);
     }
 }

@@ -25,9 +25,9 @@ use App\Http\Controllers\Admin\CheckInController;
 |--------------------------------------------------------------------------
 */
 
-// Rute fallback default Laravel jika terhalang auth (Dilempar ke halaman login Admin)
+// FIX UTAMA: Mengubah fallback /login ke google.login agar TIDAK INFINITE REDIRECT ke admin.login
 Route::get('/login', function () {
-    return redirect()->route('admin.login');
+    return redirect()->route('google.login');
 })->name('login');
 
 
@@ -44,7 +44,7 @@ Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCa
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 Route::get('/event/{event}', [WelcomeController::class, 'showEvent'])->name('events.show');
 
-// Checkout (Dikeluarkan dari auth sesuai Modul yang menerapkan Guest Checkout)
+// Checkout Routes
 Route::get('/checkout/{event}', [CheckoutController::class, 'create'])->name('checkout.create');
 Route::post('/checkout/{event}', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/payment/{order_id}', [CheckoutController::class, 'payment'])->name('checkout.payment');
