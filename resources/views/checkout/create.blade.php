@@ -13,10 +13,22 @@
 
     <h1 class="text-center text-2xl font-black mb-8 text-slate-800">Konfirmasi Pemesanan Tiket</h1>
 
-    {{-- Alert Notifikasi --}}
+    {{-- Alert Notifikasi Error dari Controller --}}
     @if(session('error'))
         <div class="max-w-2xl mx-auto mb-8 p-4 bg-red-100 border border-red-200 text-red-700 rounded-xl font-semibold text-center">
-            {{ session('error') }}
+            🚨 {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- Alert Error Validasi Form --}}
+    @if ($errors->any())
+        <div class="max-w-2xl mx-auto mb-8 p-4 bg-red-500 text-white rounded-xl font-bold">
+            <p class="mb-1">⚠️ Gagal Memproses Form:</p>
+            <ul class="list-disc pl-5 text-sm font-normal">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -24,7 +36,12 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm w-full md:w-80">
             <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">Detail Event</h3>
             <p class="text-indigo-600 font-bold text-lg mb-2">{{ $event->title }}</p>
-            <p class="text-sm text-slate-500 mb-1">📅 {{ $event->date->format('d M Y, H:i') }}</p>
+            
+            {{-- FIX TANGGAL DI SINI MENGGUNAKAN CARBON PARSE AGAR TIDAK ERROR LOG --}}
+            <p class="text-sm text-slate-500 mb-1">
+                📅 {{ \Carbon\Carbon::parse($event->date)->format('d M Y, H:i') }}
+            </p>
+            
             <p class="text-sm text-slate-500 mb-4">📍 {{ $event->location }}</p>
 
             <div class="flex justify-between items-center pt-4 border-t border-dashed">
@@ -42,7 +59,6 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm w-full max-w-xl">
             <h3 class="font-bold text-slate-700 mb-6 border-b pb-2">Informasi Data Pemesan</h3>
 
-            {{-- Tombol Login Google, hanya muncul kalau customer belum login --}}
             @guest('customer')
                 <a href="{{ route('google.login') }}"
                     class="w-full flex items-center justify-center gap-3 py-4 border-2 border-slate-200 rounded-xl font-bold mb-6 hover:bg-slate-50 transition">
@@ -86,11 +102,20 @@
                     @error('customer_phone') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                <div class="pt-2">
+                    <label class="block text-sm font-bold text-slate-600 mb-2">Kode Voucher Diskon (Opsional)</label>
+                    <input type="text" name="coupon_code" placeholder="Gunakan: MAHASISWA50 / GRATIS100"
+                           value="{{ old('coupon_code') }}"
+                           class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 uppercase font-semibold transition">
+                    <span class="text-[11px] text-slate-400 mt-1 block">*Masukkan <b>MAHASISWA50</b> (diskon 50%) atau <b>GRATIS100</b> (Gratis)</span>
+                    @error('coupon_code') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
                 <button type="submit" class="w-full py-4 mt-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-                    {{ $event->price == 0 ? 'Ambil Tiket Gratis Sekarang' : 'Bayar & Ambil Tiket Sekarang' }}
+                    {{ $event->price == 0 ? 'Ambil Tiket Gratis Sekarang' : 'Lanjutkan ke Pembayaran' }}
                 </button>
             </form>
         </div>
     </div>
 </main>
-@endsection
+@endsectionphp artisan view:clear

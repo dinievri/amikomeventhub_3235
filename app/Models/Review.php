@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Review extends Model
 {
     protected $fillable = [
+        'user_id',        // <-- Tambahkan ini
         'event_id',
         'transaction_id',
         'rating',
@@ -16,6 +17,14 @@ class Review extends Model
     protected $casts = [
         'rating' => 'integer',
     ];
+
+    /**
+     * Relasi ke Pengguna/Customer yang memberi ulasan
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function event()
     {

@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\CheckInController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes

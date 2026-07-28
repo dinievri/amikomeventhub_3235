@@ -11,24 +11,24 @@ use Illuminate\Support\Facades\Storage;
 class EventController extends Controller
 {
     /**
-     * Menampilkan daftar semua event
+     * Menampilkan daftar semua event (Multi-Tenant)
      */
     public function index()
     {
-      $user = auth()->user();
+        $user = auth()->user();
 
-    // LOGIKA MULTI-TENANT:
-    // Jika Role = Admin (Superadmin), tampilkan SELURUH event dari semua organisasi.
-    if ($user->role === 'admin') {
-        $events = Event::with('organization')->latest()->paginate(10);
-    } else {
-        // Jika Role = Panitia/HIMA, HANYA tampilkan event milik organisasinya sendiri
-        $events = Event::whereHas('organization', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->latest()->paginate(10);
-    }
+        // LOGIKA MULTI-TENANT:
+        // Jika Role = Admin (Superadmin), tampilkan SELURUH event dari semua organisasi.
+        if ($user->role === 'admin') {
+            $events = Event::with('organization')->latest()->paginate(10);
+        } else {
+            // Jika Role = Panitia/HIMA, HANYA tampilkan event milik organisasinya sendiri
+            $events = Event::whereHas('organization', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->latest()->paginate(10);
+        }
 
-    return view('admin.events.index', compact('events'));
+        return view('admin.events.index', compact('events'));
     }
 
     /**
@@ -46,34 +46,52 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'required',
-        'price' => 'required|numeric',
-        // tambahkan validasi lainnya...
-    ]);
+            'title'       => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'date'        => 'required|date',
+            'price'       => 'required|numeric|min:0',
+            'location'    => 'required|string|max:255',
+            'stock'       => 'required|integer|min:0',
+            'description' => 'required|string',
+            'poster'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
 
-    $user = auth()->user();
-    
-    // Ambil ID Organisasi milik user yang sedang login
-    $organizationId = $user->organization ? $user->organization->id : null;
+        $user = auth()->user();
+        
+        // Ambil ID Organisasi milik user yang sedang login
+        $organizationId = $user->organization ? $user->organization->id : null;
 
-    Event::create([
-        'title' => $request->title,
-        'description' => $request->description,
-        'price' => $request->price,
-        'organization_id' => $organizationId, // Automatic assignment ke tenant panitia
-        // field lainnya...
-    ]);
+        // Handling Upload Poster Event
+        $posterPath = 'default.jpg';
+        if ($request->hasFile('poster')) {
+            $posterPath = $request->file('poster')->store('posters', 'public');
+        }
 
-    return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat!');
-}
+        Event::create([
+            'title'           => $request->title,
+            'category_id'     => $request->category_id,
+            'date'            => $request->date,
+            'price'           => $request->price,
+            'location'        => $request->location,
+            'stock'           => $request->stock,
+            'description'     => $request->description,
+            'poster_path'     => $posterPath,
+            'organization_id' => $organizationId, // Automatic assignment ke tenant panitia
+        ]);
+
+        return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat!');
+    }
 
     /**
-     * Menampilkan detail event
+     * Menampilkan detail event beserta Ulasan & Rating
      */
     public function show(string $id)
     {
-        $event = Event::findOrFail($id);
+        // PERBAIKAN UTAMA:
+        // Panggil relasi 'reviews.user' dan 'organization' agar data ulasan, 
+        // rating, dan nama pembuat ulasan tidak bermasalah/hilang di view.
+        $event = Event::with(['reviews.user', 'organization'])->findOrFail($id);
+
         return view('admin.events.show', compact('event'));
     }
 
@@ -94,14 +112,14 @@ class EventController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'title'         => 'required|string|max:255',
-            'category_id'   => 'required|exists:categories,id',
-            'date'          => 'required',
-            'price'         => 'required|numeric|min:0',
-            'description'   => 'nullable|string',
-            'location'      => 'required|string|max:255',
-            'stock'         => 'required|integer|min:0',
-            'poster'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'title'       => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'date'        => 'required|date',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'location'    => 'required|string|max:255',
+            'stock'       => 'required|integer|min:0',
+            'poster'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $event = Event::findOrFail($id);
@@ -109,6 +127,7 @@ class EventController extends Controller
         $data = $request->only(['title', 'category_id', 'date', 'price', 'description', 'location', 'stock']);
 
         if ($request->hasFile('poster')) {
+            // Hapus poster lama jika ada dan bukan default
             if ($event->poster_path && $event->poster_path !== 'default.jpg') {
                 Storage::disk('public')->delete($event->poster_path);
             }
@@ -126,6 +145,12 @@ class EventController extends Controller
     public function destroy(string $id)
     {
         $event = Event::findOrFail($id);
+
+        // Hapus file poster jika ada
+        if ($event->poster_path && $event->poster_path !== 'default.jpg') {
+            Storage::disk('public')->delete($event->poster_path);
+        }
+
         $event->delete();
 
         return redirect()->route('admin.events.index')->with('success', 'Event berhasil dihapus!');

@@ -15,11 +15,7 @@ return [
     */
 
     'postmark' => [
-        'key' => env('POSTMARK_API_KEY'),
-    ],
-
-    'resend' => [
-        'key' => env('RESEND_API_KEY'),
+        'token' => env('POSTMARK_TOKEN'),
     ],
 
     'ses' => [
@@ -28,17 +24,45 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'resend' => [
+        'key' => env('RESEND_KEY'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+            'channel' => env('SLACK_NOTIFICATION_CHANNEL'),
         ],
     ],
 
-      'google' => [
-       'client_id' => env('GOOGLE_CLIENT_ID'),
-       'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-       'redirect' => env('GOOGLE_REDIRECT_URI'),
-],
+    /*
+    |--------------------------------------------------------------------------
+    | Google OAuth (Socialite) Config
+    |--------------------------------------------------------------------------
+    |
+    | Mengambil kredensial Google Client dari file .env
+    |
+    */
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Midtrans Payment Gateway Config
+    |--------------------------------------------------------------------------
+    |
+    | Mengambil kredensial Midtrans dari file .env
+    |
+    */
+    'midtrans' => [
+        'server_key'    => env('MIDTRANS_SERVER_KEY'),
+        'client_key'    => env('MIDTRANS_CLIENT_KEY'),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        'is_sanitized'  => env('MIDTRANS_IS_SANITIZED', true),
+        'is_3ds'        => env('MIDTRANS_IS_3DS', true),
+    ],
 
 ];

@@ -15,31 +15,44 @@ class CheckoutController extends Controller
     public function create(Event $event)
     {
         $categories = Category::all();
-
         return view('checkout.create', compact('event', 'categories'));
     }
 
     public function store(Request $request, Event $event)
     {
+        // 1. Validasi Input Data Pemesan
         $request->validate([
             'customer_name'  => 'required|string|max:255',
-            'customer_email' => 'required|email',
-            'customer_phone' => 'required|string',
+            'customer_email' => 'required|email|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'coupon_code'    => 'nullable|string',
         ]);
 
         $orderId = 'TRX-' . time() . '-' . strtoupper(Str::random(5));
-        $totalPrice = (int) $event->price;
+        $originalPrice = (int) $event->price;
+        $discount = 0;
 
-        // ==========================================
-        // 1. LOGIKA UNTUK EVENT GRATIS (PRICE <= 0)
-        // ==========================================
+        // 2. Logika Diskon & Kupon
+        if ($request->filled('coupon_code')) {
+            $code = strtoupper(trim($request->coupon_code));
+            
+            if ($code === 'MAHASISWA50') {
+                $discount = $originalPrice * 0.5; // Diskon 50%
+            } elseif ($code === 'GRATIS100') {
+                $discount = $originalPrice; // Diskon 100%
+            } else {
+                return back()->with('error', 'Kode kupon/voucher tidak valid!')->withInput();
+            }
+        }
+
+        $totalPrice = max(0, $originalPrice - $discount);
+
+        // 3. LOGIKA BYPASS UNTUK TIKET GRATIS / DISKON 100%
         if ($totalPrice <= 0) {
-            // Cek stok jika ada kolom stok di tabel event
             if (isset($event->stock) && $event->stock < 1) {
-                return back()->with('error', 'Maaf, stok tiket untuk event gratis ini sudah habis.');
+                return back()->with('error', 'Maaf, stok tiket ini sudah habis.')->withInput();
             }
 
-            // Langsung simpan transaksi dengan status 'success' (Bypass Midtrans)
             $transaction = Transaction::create([
                 'event_id'       => $event->id,
                 'order_id'       => $orderId,
@@ -47,34 +60,20 @@ class CheckoutController extends Controller
                 'customer_email' => $request->customer_email,
                 'customer_phone' => $request->customer_phone,
                 'total_price'    => 0,
-                'status'         => 'success', // Langsung dianggap LUNAS/BERHASIL
-                'snap_token'     => null       // Tidak memerlukan token Midtrans
+                'status'         => 'success', // Direct LUNAS
+                'snap_token'     => null
             ]);
 
-            // Kurangi stok jika event menggunakan sistem kuota/stok
             if (isset($event->stock)) {
                 $event->decrement('stock');
             }
 
             // Redirect langsung ke halaman sukses (E-Ticket)
-            return redirect()->route('checkout.success', $transaction->order_id)
-                             ->with('success', 'Pendaftaran berhasil! E-Ticket Anda telah diterbitkan.');
+            return redirect()->route('checkout.success', ['order_id' => $transaction->order_id])
+                             ->with('success', 'Pendaftaran berhasil! E-Ticket Gratis Anda telah diterbitkan.');
         }
 
-        // ==========================================
-        // 2. LOGIKA UNTUK EVENT BERBAYAR (MIDTRANS)
-        // ==========================================
-        $transaction = Transaction::create([
-            'event_id'       => $event->id,
-            'order_id'       => $orderId,
-            'customer_name'  => $request->customer_name,
-            'customer_email' => $request->customer_email,
-            'customer_phone' => $request->customer_phone,
-            'total_price'    => $totalPrice,
-            'status'         => 'pending'
-        ]);
-
-        // Setup Konfigurasi Midtrans
+        // 4. LOGIKA PEMBAYARAN MIDTRANS (EVENT BERBAYAR)
         \Midtrans\Config::$serverKey = Config::get('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
         \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', env('MIDTRANS_IS_PRODUCTION', false));
         \Midtrans\Config::$isSanitized = true;
@@ -95,16 +94,22 @@ class CheckoutController extends Controller
         try {
             $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-            $transaction->update([
-                'snap_token' => $snapToken
+            $transaction = Transaction::create([
+                'event_id'       => $event->id,
+                'order_id'       => $orderId,
+                'customer_name'  => $request->customer_name,
+                'customer_email' => $request->customer_email,
+                'customer_phone' => $request->customer_phone,
+                'total_price'    => $totalPrice,
+                'status'         => 'pending',
+                'snap_token'     => $snapToken
             ]);
 
-            return redirect()->route('checkout.payment', $transaction->order_id);
+            // Redirect ke instruksi bayar Midtrans
+            return redirect()->route('checkout.payment', ['order_id' => $transaction->order_id]);
 
         } catch (Exception $e) {
-            $transaction->update(['status' => 'failed']);
-
-            return back()->with('error', 'Gagal membuat kode bayar Midtrans: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses pembayaran Midtrans: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -116,10 +121,8 @@ class CheckoutController extends Controller
             ->where('order_id', $order_id)
             ->firstOrFail();
 
-        // Jika transaksi ini sudah berstatus success (misal hasil bypass event gratis), 
-        // langsung alihkan ke halaman success agar tidak bisa masuk ke halaman payment
         if ($transaction->status === 'success') {
-            return redirect()->route('checkout.success', $transaction->order_id);
+            return redirect()->route('checkout.success', ['order_id' => $transaction->order_id]);
         }
 
         return view('checkout.payment', compact('transaction', 'categories'));
@@ -129,9 +132,8 @@ class CheckoutController extends Controller
     {
         $categories = Category::all();
 
-        $transaction = Transaction::where('order_id', $order_id)->firstOrFail();
+        $transaction = Transaction::with('event')->where('order_id', $order_id)->firstOrFail();
 
-        // Jalankan pengecekan status Midtrans HANYA jika harganya > 0 dan statusnya belum success
         if ($transaction->total_price > 0 && $transaction->status !== 'success') {
             \Midtrans\Config::$serverKey = Config::get('midtrans.server_key', env('MIDTRANS_SERVER_KEY'));
             \Midtrans\Config::$isProduction = Config::get('midtrans.is_production', env('MIDTRANS_IS_PRODUCTION', false));
@@ -143,7 +145,7 @@ class CheckoutController extends Controller
                     $transaction->update(['status' => 'success']);
                 }
             } catch (Exception $e) {
-                // Biarkan halaman success tetap muncul meskipun pengecekan API timeout
+                // Biarkan tetap lanjut jika ada error jaringan Midtrans
             }
         }
 

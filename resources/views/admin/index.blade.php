@@ -20,7 +20,9 @@
         </div>
     @endif
 
+    {{-- KARTU STATISTIK UTAMA --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <!-- Total Pendapatan -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,6 +33,7 @@
             <h3 class="text-2xl font-black text-slate-800">Rp {{ number_format($totalRevenue, 0, ',', '.') }}</h3>
         </div>
 
+        <!-- Transaksi Sukses -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <div class="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center mb-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,6 +44,7 @@
             <h3 class="text-2xl font-black text-slate-800">{{ $ticketsSold }}</h3>
         </div>
 
+        <!-- Event Mendatang -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,6 +55,7 @@
             <h3 class="text-2xl font-black text-slate-800">{{ $activeEvents }}</h3>
         </div>
 
+        <!-- Transaksi Pending -->
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +67,60 @@
         </div>
     </div>
 
-    <div class="mt-12 bg-white rounded-3xl border border-slate-100 shadow-sm p-8 text-center">
+    {{-- KARTU TOTAL PENGGUNA (Tampil khusus Superadmin) --}}
+    @if(isset($totalUsers) && $totalUsers !== null)
+        <div class="bg-purple-600 text-white p-6 rounded-3xl mb-10 shadow-lg shadow-purple-100 flex items-center justify-between">
+            <div>
+                <p class="text-purple-200 text-sm font-bold uppercase mb-1">Total Pengguna Terdaftar</p>
+                <h3 class="text-3xl font-black">{{ $totalUsers }} Pengguna</h3>
+            </div>
+            <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+        </div>
+    @endif
+
+    {{-- TABEL TRANSAKSI TERBARU --}}
+    @if(isset($recentTransactions) && $recentTransactions->count() > 0)
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-10">
+            <h3 class="text-lg font-black text-slate-800 mb-4">Transaksi Terbaru</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-slate-400 font-bold uppercase text-xs">
+                        <tr>
+                            <th class="p-3 rounded-l-xl">Order ID</th>
+                            <th class="p-3">Nama Pembeli</th>
+                            <th class="p-3">Event</th>
+                            <th class="p-3">Total</th>
+                            <th class="p-3 rounded-r-xl">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($recentTransactions as $trx)
+                            <tr>
+                                <td class="p-3 font-mono text-xs font-bold">{{ $trx->order_id }}</td>
+                                <td class="p-3 font-semibold text-slate-800">{{ $trx->customer_name }}</td>
+                                <td class="p-3">{{ $trx->event->title ?? '-' }}</td>
+                                <td class="p-3 font-bold">Rp {{ number_format($trx->total_price, 0, ',', '.') }}</td>
+                                <td class="p-3">
+                                    <span class="px-3 py-1 text-xs rounded-full font-bold
+                                        {{ $trx->status == 'success' ? 'bg-green-100 text-green-700' : '' }}
+                                        {{ $trx->status == 'pending' ? 'bg-amber-100 text-amber-700' : '' }}
+                                        {{ $trx->status == 'failed' ? 'bg-red-100 text-red-700' : '' }}">
+                                        {{ strtoupper($trx->status) }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 text-center">
         <h2 class="text-xl font-black text-slate-800">Selamat datang di Panel Admin!</h2>
         <p class="text-slate-500 mt-3">Gunakan menu di sisi kiri atau atas untuk mengelola Event, Kategori, dan Transaksi.</p>
     </div>
