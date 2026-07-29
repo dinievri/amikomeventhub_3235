@@ -7,18 +7,18 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        Schema::table('reviews', function (Blueprint $table) {
-            // Menambahkan kolom transaction_id
-            $table->foreignId('transaction_id')->after('event_id')->nullable()->constrained('transactions')->cascadeOnDelete();
-        });
-    }
+{
+    Schema::table('reviews', function (Blueprint $table) {
+        // Sesuaikan tipe data dengan primary key pada tabel transactions (biasanya foreignId)
+        $table->foreignId('transaction_id')->constrained()->onDelete('cascade');
+    });
+}
 
-    public function down(): void
-    {
-        Schema::table('reviews', function (Blueprint $table) {
-            $table->dropForeign(['transaction_id']);
-            $table->dropColumn('transaction_id');
-        });
-    }
-};
+public function down(): void
+{
+    Schema::table('reviews', function (Blueprint $table) {
+        $table->dropForeign(['transaction_id']);
+        $table->dropColumn('transaction_id');
+    });
+}
+    };

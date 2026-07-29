@@ -1,6 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
+  {{-- NAVBAR TOP --}}
+  <nav class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center border-b border-slate-100 mb-6">
+    <a href="/" class="flex items-center gap-2 font-black text-2xl text-slate-900">
+      <span class="bg-indigo-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center text-base font-black shadow-lg shadow-indigo-200">AH</span>
+      AmikomEventHub
+    </a>
+
+    <div class="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500">
+      <a href="#events" class="hover:text-indigo-600 transition">Jelajahi</a>
+      <a href="#kategori" class="hover:text-indigo-600 transition">Kategori</a>
+      <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      @if(Auth::guard('customer')->check())
+        {{-- Status Login Customer --}}
+        <div class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-xs font-black tracking-wider flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          WELCOME {{ strtoupper(Auth::guard('customer')->user()->name) }}
+        </div>
+
+        {{-- Tombol Logout --}}
+        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+          @csrf
+          <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-xs px-4 py-2 rounded-full font-bold transition shadow-md shadow-red-100">
+            Logout
+          </button>
+        </form>
+      @else
+        {{-- Tombol Login Jika Belum Login --}}
+        <a href="{{ route('google.login') }}" class="px-6 py-2.5 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">
+          Login Google
+        </a>
+      @endif
+    </div>
+  </nav>
+
   {{-- HERO SECTION --}}
   <section class="max-w-7xl mx-auto px-6 py-16 flex flex-col md:flex-row items-center gap-12">
     <div class="flex-1 space-y-8">
@@ -25,7 +62,7 @@
       <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <img src="assets/concert.png" alt="Concert" class="rounded-[2rem] shadow-2xl relative z-10 w-full object-cover aspect-[4/5] object-center" onerror="this.src='https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80'">
 
-      <div class="absolute -bottom-6 -left-6 glass p-6 rounded-2xl shadow-xl z-20 border border-white">
+      <div class="absolute -bottom-6 -left-6 glass p-6 rounded-2xl shadow-xl z-20 border border-white bg-white/80 backdrop-blur">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +79,7 @@
   </section>
 
   {{-- KATEGORI SECTION --}}
-  <section class="max-w-7xl mx-auto px-6 py-12">
+  <section id="kategori" class="max-w-7xl mx-auto px-6 py-12">
     <div class="mb-8">
       <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Kategori Acara</h2>
       <p class="text-slate-500 font-medium">Temukan berbagai pilihan event menarik sesuai dengan minat bakatmu.</p>

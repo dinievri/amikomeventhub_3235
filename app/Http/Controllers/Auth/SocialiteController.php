@@ -17,7 +17,7 @@ class SocialiteController extends Controller
         return Socialite::driver('google')->stateless()->redirect();
     }
 
-    // 2. Fungsi callback setelah user pilih akun Google (kode milikmu saat ini)
+    // 2. Fungsi callback setelah user pilih akun Google
     public function handleGoogleCallback(Request $request)
     {
         // Sudah ada ->stateless() (SUDAH BENAR)
@@ -32,8 +32,22 @@ class SocialiteController extends Controller
         ]);
 
         // Login-kan customer ke guard
-        Auth::guard('customer')->login($customer, true);
+        Auth::guard('customer')->login($customer, false);
 
-        return redirect()->to('/dashboard'); // Sesuaikan rute setelah login
+        return redirect()->to('/'); // Diarahkan ke beranda agar perubahan navbar terlihat
+    }
+
+    // 3. Fungsi logout untuk Customer
+    public function logout(Request $request)
+    {
+        // Logout dari guard customer
+        Auth::guard('customer')->logout();
+
+        // Hapus session & regenerate token CSRF
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // Redirect kembali ke halaman utama
+        return redirect('/')->with('success', 'Berhasil logout!');
     }
 }

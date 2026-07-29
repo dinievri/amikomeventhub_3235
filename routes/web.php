@@ -33,14 +33,17 @@ Route::get('/login', function () {
 
 
 // ======================================================
-// LOGIN GOOGLE (SOCIALITE) - UNTUK CUSTOMER, DI LUAR GRUP ADMIN
+// AUTHENTICATION GOOGLE (CUSTOMER / PUBLIC)
 // ======================================================
 Route::get('/auth/google', [SocialiteController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCallback'])->name('google.callback');
 
+// Route Logout untuk Customer
+Route::post('/logout', [SocialiteController::class, 'logout'])->name('logout');
+
 
 // ======================================================
-// FRONTEND & CHECKOUT AREA (Publik / Guest Checkout / Boleh Tanpa Login)
+// FRONTEND & CHECKOUT AREA (Publik / Guest Checkout)
 // ======================================================
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 Route::get('/event/{event}', [WelcomeController::class, 'showEvent'])->name('events.show');
@@ -54,7 +57,7 @@ Route::get('/success/{order_id}', [CheckoutController::class, 'success'])->name(
 // Webhook / Callback Midtrans
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
-// Halaman statis publik (TIDAK butuh login, sesuai modul awal)
+// Halaman Statis Publik
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/profil', [HomeController::class, 'profil'])->name('profil');
 Route::get('/katalog', [HomeController::class, 'katalog'])->name('katalog');
@@ -64,7 +67,7 @@ Route::get('/my-ticket', [HomeController::class, 'ticket'])->name('ticket');
 
 
 // ======================================================
-// REVIEW (KHUSUS CUSTOMER YANG SUDAH LOGIN GOOGLE)
+// KHUSUS CUSTOMER TERAUTENTIKASI (GUARD: CUSTOMER)
 // ======================================================
 Route::middleware(['auth:customer'])->group(function () {
     Route::post('/events/{event}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
@@ -76,12 +79,12 @@ Route::middleware(['auth:customer'])->group(function () {
 // ======================================================
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // 3. Rute Login Admin
+    // Auth Admin (Guest Admin)
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // 4. Panel Administrasi
+    // Panel Administrasi (Membutuhkan Auth Admin)
     Route::middleware(['auth', 'admin'])->group(function () {
 
         Route::get('/', function () {
@@ -92,12 +95,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::redirect('events/categories', 'categories');
 
-        // CRUD Resource
+        // CRUD Resource Admin
         Route::resource('categories', CategoryController::class);
         Route::resource('partners', PartnerController::class);
         Route::resource('events', EventController::class);
 
-        // Laporan Transaksi
+        // Laporan Transaksi Admin
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
         // Scanner Check-In QR Code

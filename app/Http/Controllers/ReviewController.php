@@ -28,7 +28,7 @@ class ReviewController extends Controller
             'comment' => 'nullable|string|max:1000',
         ]);
 
-        // 2. Cari transaksi lunas berdasarkan email customer (karena tabel transactions tidak pakai customer_id)
+        // 2. Cari transaksi lunas berdasarkan email customer
         $transaction = Transaction::where('event_id', $event->id)
             ->where('customer_email', $customer->email)
             ->where('status', 'success')
@@ -38,11 +38,15 @@ class ReviewController extends Controller
             return back()->with('error', 'Anda belum pernah membeli tiket untuk event ini, atau status pembayaran belum lunas.');
         }
 
-        // 3. Pastikan acara sudah lewat minimal 1 hari (H+1)
+        // 3. Pengecekan tanggal event (DIMATIKAN DULU UNTUK TESTING)
+        // Jika nanti website sudah siap release / production, hilangkan tanda comment (//) di bawah ini:
+        
+        /* 
         $eventDate = Carbon::parse($event->date);
         if (now()->lessThan($eventDate->copy()->addDay())) {
             return back()->with('error', 'Review baru bisa diisi sehari setelah acara selesai.');
         }
+        */
 
         // 4. Cegah customer mengisi review dua kali untuk transaksi yang sama
         $existing = Review::where('transaction_id', $transaction->id)->first();

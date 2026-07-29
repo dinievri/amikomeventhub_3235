@@ -9,54 +9,54 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     /**
-     * Menampilkan halaman form login admin
+     * Menampilkan halaman form login admin.
      */
     public function showLoginForm()
     {
-        // Pastikan Anda sudah membuat file view: resources/views/admin/auth/login.blade.php
+        // Jika sudah login, langsung ke dashboard
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Mengarahkan ke resources/views/auth/login.blade.php
         return view('auth.login'); 
-        // Catatan: sesuaikan 'auth.login' dengan nama/lokasi file blade login Anda sesuai modul
     }
 
     /**
-     * Memproses data login (Authentication)
+     * Memproses data login (Authentication).
      */
     public function login(Request $request)
     {
         // 1. Validasi input
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        // 2. Coba melakukan otentikasi
-        if (Auth::attempt($credentials)) {
-            // Jika berhasil, regenerasi session
+        // 2. Coba proses otentikasi
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            // Arahkan ke dashboard admin
             return redirect()->intended(route('admin.dashboard'))
-                             ->with('success', 'Login berhasil! Selamat datang.');
+                             ->with('success', 'Login berhasil! Selamat datang kembali.');
         }
 
-        // 3. Jika gagal, kembalikan ke halaman login dengan pesan error
+        // 3. Jika gagal
         return back()->withErrors([
             'email' => 'Email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');
     }
 
     /**
-     * Memproses logout
+     * Memproses logout admin.
      */
     public function logout(Request $request)
     {
         Auth::logout();
 
-        // Invalidate session untuk keamanan
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Arahkan kembali ke halaman login
         return redirect()->route('admin.login')
                          ->with('success', 'Anda telah berhasil logout.');
     }
