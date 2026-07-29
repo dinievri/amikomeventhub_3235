@@ -37,12 +37,12 @@
             <div class="hidden md:flex items-center gap-8">
                 <div class="flex gap-8 font-medium text-slate-600 text-sm">
                     <a href="{{ route('welcome') }}" class="text-indigo-600 font-semibold hover:text-indigo-700 transition">Jelajahi</a>
-                    <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
+                    <a href="#kategori" class="hover:text-indigo-600 transition">Kategori</a>
                     <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
                 </div>
 
                 {{-- STATUS LOGIN / PROFILE CUSTOMER --}}
-                <div class="pl-4 border-l border-slate-200">
+                <div class="pl-4 border-l border-slate-200 flex items-center gap-3">
                     @auth('customer')
                         {{-- TAMPILAN JIKA CUSTOMER SUDAH LOGIN --}}
                         <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full">
@@ -56,6 +56,14 @@
                                 </span>
                             </div>
                         </div>
+
+                        {{-- TOMBOL LOGOUT --}}
+                        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+                            @csrf
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3.5 py-2 rounded-full font-bold transition shadow-sm hover:shadow">
+                                Logout
+                            </button>
+                        </form>
                     @else
                         {{-- TAMPILAN JIKA BELUM LOGIN --}}
                         <a href="{{ route('google.login', ['redirect' => url()->current()]) }}" 
