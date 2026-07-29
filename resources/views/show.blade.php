@@ -139,7 +139,7 @@
         @else
             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-6 text-center">
                 <p class="text-slate-600 text-xs">
-                    Ingin memberikan ulasan? <a href="{{ route('google.login') }}" class="text-indigo-600 font-bold hover:underline">Sign In / Login dengan Google</a> terlebih dahulu.
+                    Ingin memberikan ulasan? <a href="{{ route('google.login', ['redirect' => url()->current()]) }}" class="text-indigo-600 font-bold hover:underline">Sign In / Login dengan Google</a> terlebih dahulu.
                 </p>
             </div>
         @endauth

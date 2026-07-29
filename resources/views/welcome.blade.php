@@ -1,40 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AmikomEventHub - Temukan Event Seru!</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    .glass {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-    }
-  </style>
-</head>
-
-<body class="bg-slate-50 text-slate-900">
-
-  <nav class="glass sticky top-8 z-40 mx-4 mt-4 px-6 py-4 rounded-2xl border border-white/20 shadow-lg flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-        AH</div>
-      <span class="text-xl font-bold tracking-tight">AmikomEventHub</span>
-    </div>
-    <div class="hidden md:flex gap-8 font-medium">
-      <a href="#" class="text-indigo-600">Jelajahi</a>
-      <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
-      <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
-    </div>
-  </nav>
-
-  <section class="max-w-7xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center gap-12">
+@section('content')
+  {{-- HERO SECTION --}}
+  <section class="max-w-7xl mx-auto px-6 py-16 flex flex-col md:flex-row items-center gap-12">
     <div class="flex-1 space-y-8">
       <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold uppercase tracking-wider">#1 Event Platform</span>
       <h1 class="text-5xl md:text-7xl font-extrabold leading-tight">
@@ -73,6 +41,7 @@
     </div>
   </section>
 
+  {{-- KATEGORI SECTION --}}
   <section class="max-w-7xl mx-auto px-6 py-12">
     <div class="mb-8">
       <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Kategori Acara</h2>
@@ -85,7 +54,6 @@
           {{ $category->name }}
         </span>
       @empty
-        <!-- Kategori Default / Mock jika database kosong -->
         @foreach(['Musik', 'Teknologi', 'Coding', 'Bisnis', 'Seni'] as $mockCategory)
           <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-5 py-2.5 rounded-full font-bold text-sm shadow-sm hover:bg-indigo-600 hover:text-white transition cursor-pointer">
             {{ $mockCategory }}
@@ -95,6 +63,7 @@
     </div>
   </section>
 
+  {{-- EVENT TERDEKAT SECTION --}}
   <section id="events" class="max-w-7xl mx-auto px-6 py-12">
     <div class="flex justify-between items-end mb-12">
       <div>
@@ -106,18 +75,15 @@
       </div>
     </div>
 
-    <!-- Container Grid Event Dinamis -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       @forelse($events as $event)
         <div class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden">
           <div class="relative overflow-hidden aspect-[3/4]">
-            <!-- Validasi Poster Path -->
             <img src="{{ $event->poster_path ? asset('storage/' . $event->poster_path) : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80' }}" 
                  alt="{{ $event->title }}" 
                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                  onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80'">
             
-            <!-- KEAMANAN UTAMA: Menggunakan Null-safe (?->) agar tidak crash jika kategori null -->
             <div class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur rounded-lg text-xs font-bold uppercase text-indigo-600">
               {{ $event->category?->name ?? 'Event' }}
             </div>
@@ -128,7 +94,6 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
-              <!-- KEAMANAN TANGGAL: Cek Carbon Object atau Raw String secara kondisional untuk mencegah crash -->
               <span>
                 @if($event->date)
                   {{ $event->date instanceof \Carbon\Carbon ? $event->date->format('d F Y, H:i') : \Carbon\Carbon::parse($event->date)->format('d F Y, H:i') }} WIB
@@ -141,7 +106,6 @@
               <span class="text-2xl font-black text-indigo-600">
                 {{ ($event->price ?? 0) > 0 ? 'Rp ' . number_format($event->price, 0, ',', '.') : 'Gratis' }}
               </span>
-              <!-- Rute Detail Event Publik -->
               <a href="{{ route('events.show', $event->id) }}" class="px-5 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition">
                 Lihat Detail
               </a>
@@ -149,9 +113,7 @@
           </div>
         </div>
       @empty
-        <!-- TAMPILAN CADANGAN (FALLBACK): 3 Event Mock Asli Anda Ditampilkan Kembali Jika Database Kosong -->
-        
-        <!-- Mock 1: Jazz Night -->
+        <!-- Fallback Mock Data -->
         <div class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden">
           <div class="relative overflow-hidden aspect-[3/4]">
             <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80" alt="Jazz Night" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -172,7 +134,6 @@
           </div>
         </div>
 
-        <!-- Mock 2: AI & Future -->
         <div class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden">
           <div class="relative overflow-hidden aspect-[3/4]">
             <img src="https://images.unsplash.com/photo-1591453089816-0fbb971b454c?auto=format&fit=crop&w=600&q=80" alt="AI & Future" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -193,7 +154,6 @@
           </div>
         </div>
 
-        <!-- Mock 3: Hackathon -->
         <div class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden">
           <div class="relative overflow-hidden aspect-[3/4]">
             <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80" alt="Hackathon" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -217,6 +177,7 @@
     </div>
   </section>
 
+  {{-- PARTNER SECTION --}}
   <section class="max-w-7xl mx-auto px-6 py-12">
     <div class="mb-8">
       <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Partner Resmi AmikomEventHub</h2>
@@ -230,7 +191,6 @@
           <h5 class="text-xs font-bold text-slate-700 text-center tracking-tight line-clamp-1">{{ $partner->name }}</h5>
         </div>
       @empty
-        <!-- Partner Default / Mock jika database kosong -->
         @for($i = 1; $i <= 5; $i++)
           <div class="bg-white border border-slate-100 rounded-2xl p-5 flex flex-col items-center justify-center h-36 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
             <img src="https://placehold.co/200x100?text=Partner+{{ $i }}" alt="Partner Mock" class="max-h-14 max-w-full object-contain mb-3">
@@ -240,37 +200,4 @@
       @endforelse
     </div>
   </section>
-
-  <footer class="bg-indigo-900 text-indigo-100 py-20 px-6 mt-20">
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-      <div class="space-y-4 col-span-2">
-        <div class="flex items-center gap-2">
-          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-900 font-bold text-xl">AH</div>
-          <span class="text-2xl font-bold text-white">AmikomEventHub</span>
-        </div>
-        <p class="max-w-xs text-indigo-300">Platform reservasi tiket event online terbaik untuk mahasiswa dan penyelenggara profesional.</p>
-      </div>
-      <div>
-        <h4 class="text-white font-bold mb-6">Navigasi</h4>
-        <ul class="space-y-4">
-          <li><a href="#" class="hover:text-white transition">Home</a></li>
-          <li><a href="#" class="hover:text-white transition">Semua Event</a></li>
-          <li><a href="#" class="hover:text-white transition">Cara Bayar</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="text-white font-bold mb-6">Hubungi Kami</h4>
-        <ul class="space-y-4">
-          <li>support@eventtiket.com</li>
-          <li>+62 812 3456 7890</li>
-        </ul>
-      </div>
-    </div>
-    <div class="max-w-7xl mx-auto pt-12 mt-12 border-t border-indigo-800 text-center text-indigo-400 text-sm">
-      &copy; 2026 AmikomEventHub. Built with Laravel & Tailwind CSS.
-    </div>
-  </footer>
-
-</body>
-
-</html>
+@endsection

@@ -24,17 +24,51 @@
     {{-- NAVBAR BIASA TANPA STICKY --}}
     <div class="max-w-6xl mx-auto px-4 pt-4">
         <nav class="glass px-6 py-4 rounded-2xl border border-slate-200/60 shadow-md flex justify-between items-center">
+            
+            {{-- LOGO BRAND --}}
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md shadow-indigo-200">
                     AH
                 </div>
                 <span class="text-xl font-bold tracking-tight text-slate-900">AmikomEventHub</span>
             </div>
-            <div class="hidden md:flex gap-8 font-medium text-slate-600">
-                <a href="#" class="text-indigo-600 font-semibold">Jelajahi</a>
-                <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
-                <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
+
+            {{-- MENU & AUTHENTICATION --}}
+            <div class="hidden md:flex items-center gap-8">
+                <div class="flex gap-8 font-medium text-slate-600 text-sm">
+                    <a href="{{ route('welcome') }}" class="text-indigo-600 font-semibold hover:text-indigo-700 transition">Jelajahi</a>
+                    <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
+                    <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
+                </div>
+
+                {{-- STATUS LOGIN / PROFILE CUSTOMER --}}
+                <div class="pl-4 border-l border-slate-200">
+                    @auth('customer')
+                        {{-- TAMPILAN JIKA CUSTOMER SUDAH LOGIN --}}
+                        <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full">
+                            <div class="w-7 h-7 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
+                                {{ strtoupper(substr(Auth::guard('customer')->user()->name, 0, 2)) }}
+                            </div>
+                            <div class="text-xs">
+                                <span class="text-slate-400 block text-[9px] leading-none uppercase tracking-wider font-semibold">Welcome</span>
+                                <span class="font-bold text-slate-800 leading-tight block">
+                                    {{ Auth::guard('customer')->user()->name }}
+                                </span>
+                            </div>
+                        </div>
+                    @else
+                        {{-- TAMPILAN JIKA BELUM LOGIN --}}
+                        <a href="{{ route('google.login', ['redirect' => url()->current()]) }}" 
+                           class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md shadow-indigo-100">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.761H12.545z"/>
+                            </svg>
+                            Sign In dengan Google
+                        </a>
+                    @endauth
+                </div>
             </div>
+
         </nav>
     </div>
 

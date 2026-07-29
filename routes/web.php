@@ -36,7 +36,7 @@ Route::get('/login', function () {
 // LOGIN GOOGLE (SOCIALITE) - UNTUK CUSTOMER, DI LUAR GRUP ADMIN
 // ======================================================
 Route::get('/auth/google', [SocialiteController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCallback']);
+Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCallback'])->name('google.callback');
 
 
 // ======================================================

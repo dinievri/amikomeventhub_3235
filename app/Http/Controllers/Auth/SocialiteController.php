@@ -3,37 +3,37 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Laravel\Socialite\Facades\Socialite;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Socialite\Facades\Socialite;
 
 class SocialiteController extends Controller
 {
-    // Redirect user ke halaman login Google
+    // 1. Fungsi saat tombol "Login dengan Google" diklik
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        // Tambahkan ->stateless() di sini
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
-    // Callback setelah user berhasil/gagal login dari Google
-    public function handleGoogleCallback()
+    // 2. Fungsi callback setelah user pilih akun Google (kode milikmu saat ini)
+    public function handleGoogleCallback(Request $request)
     {
-        try {
-            $googleUser = Socialite::driver('google')->user();
+        // Sudah ada ->stateless() (SUDAH BENAR)
+        $googleUser = Socialite::driver('google')->stateless()->user();
 
-            $customer = Customer::updateOrCreate([
-                'email' => $googleUser->getEmail(),
-            ], [
-                'name' => $googleUser->getName(),
-                'google_id' => $googleUser->getId(),
-            ]);
+        // Simpan atau update data customer
+        $customer = Customer::updateOrCreate([
+            'email' => $googleUser->getEmail(),
+        ], [
+            'name'      => $googleUser->getName(),
+            'google_id' => $googleUser->getId(),
+        ]);
 
-            // Login ke guard "customer", BUKAN guard "web" (guard web khusus Admin/Organizer)
-            Auth::guard('customer')->login($customer);
+        // Login-kan customer ke guard
+        Auth::guard('customer')->login($customer, true);
 
-            return redirect()->route('welcome')->with('success', 'Berhasil login dengan Google, silakan lanjutkan pemesanan tiket.');
-        } catch (\Exception $e) {
-            return redirect('/')->with('error', 'Gagal login menggunakan akun Google: ' . $e->getMessage());
-        }
+        return redirect()->to('/dashboard'); // Sesuaikan rute setelah login
     }
 }
