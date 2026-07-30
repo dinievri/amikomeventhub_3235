@@ -7,7 +7,6 @@ use App\Models\Review;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class ReviewController extends Controller
 {
@@ -38,24 +37,15 @@ class ReviewController extends Controller
             return back()->with('error', 'Anda belum pernah membeli tiket untuk event ini, atau status pembayaran belum lunas.');
         }
 
-        // 3. Pengecekan tanggal event (DIMATIKAN DULU UNTUK TESTING)
-        // Jika nanti website sudah siap release / production, hilangkan tanda comment (//) di bawah ini:
-        
-        /* 
-        $eventDate = Carbon::parse($event->date);
-        if (now()->lessThan($eventDate->copy()->addDay())) {
-            return back()->with('error', 'Review baru bisa diisi sehari setelah acara selesai.');
-        }
-        */
-
-        // 4. Cegah customer mengisi review dua kali untuk transaksi yang sama
+        // 3. Cegah customer mengisi review dua kali untuk transaksi yang sama
         $existing = Review::where('transaction_id', $transaction->id)->first();
         if ($existing) {
             return back()->with('error', 'Anda sudah pernah memberi ulasan untuk pembelian ini.');
         }
 
-        // 5. Simpan review baru
+        // 4. Simpan review baru (TAMBAHKAN user_id DI SINI)
         Review::create([
+            'user_id'        => $customer->id, // <--- INI SOLUSI UTAMANYA!
             'event_id'       => $event->id,
             'transaction_id' => $transaction->id,
             'rating'         => $data['rating'],

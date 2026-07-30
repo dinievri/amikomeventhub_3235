@@ -29,16 +29,28 @@
             <thead>
                 <tr class="bg-slate-50 text-slate-600 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
                     <th class="p-4 w-20 text-center">No</th>
+                    <th class="p-4 w-32 text-center">Logo</th>
                     <th class="p-4">Nama Instansi / Partner</th>
                     <th class="p-4 text-center w-48">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+            <tbody id="partner-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
                 @forelse($partners as $index => $partner)
+                    @php
+                        $logo = $partner->logo_url ?? $partner->logo ?? '';
+                    @endphp
                     <tr class="hover:bg-slate-50/80 transition-colors">
                         <td class="p-4 text-center font-medium text-slate-400">{{ $index + 1 }}</td>
+                        <td class="p-4 text-center">
+                            <div class="w-12 h-12 mx-auto rounded-xl border border-slate-100 bg-slate-50 p-1 flex items-center justify-center">
+                                <img src="{{ Str::startsWith($logo, 'http') ? $logo : asset('storage/' . $logo) }}" 
+                                     alt="{{ $partner->name }}" 
+                                     class="max-h-full max-w-full object-contain"
+                                     onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg'">
+                            </div>
+                        </td>
                         <td class="p-4 font-semibold text-slate-800">{{ $partner->name }}</td>
-                        <td class="p-4 flex justify-center gap-2">
+                        <td class="p-4 flex justify-center items-center gap-2 h-20">
                             <a href="{{ route('admin.partners.edit', $partner->id) }}" class="text-indigo-600 hover:bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-xl font-bold text-xs transition">Edit</a>
                             <form action="{{ route('admin.partners.destroy', $partner->id) }}" method="POST" onsubmit="return confirm('Hapus partner ini?')">
                                 @csrf
@@ -49,11 +61,34 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="p-12 text-center text-slate-400 font-medium bg-slate-50/50">Data partner tidak ditemukan.</td>
+                        <td colspan="4" class="p-12 text-center text-slate-400 font-medium bg-slate-50/50">Data partner tidak ditemukan.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
+
+{{-- SCRIPT AUTO REFRESH TIAP 3 DETIK TANPA RELOAD PAGE --}}
+<script>
+    setInterval(function() {
+        // Hanya auto refresh jika user TIDAK sedang mengetik di kolom pencarian
+        const searchInput = document.querySelector('input[name="search"]');
+        if (document.activeElement === searchInput) return;
+
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTbody = doc.getElementById('partner-table-body');
+                const currentTbody = document.getElementById('partner-table-body');
+                
+                if (newTbody && currentTbody) {
+                    currentTbody.innerHTML = newTbody.innerHTML;
+                }
+            })
+            .catch(err => console.error('Auto refresh error:', err));
+    }, 3000);
+</script>
 @endsection

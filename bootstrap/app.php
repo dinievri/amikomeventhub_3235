@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,13 +13,22 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // --- KODE ALIAS MIDDLEWARE ADMIN ---
+        // --- REDIRECT GUEST BERDASARKAN URL ---
+        $middleware->redirectGuestsTo(function (Request $request) {
+            // Jika user mengakses URL berawalan /admin, lempar ke form login admin
+            if ($request->is('admin*')) {
+                return route('admin.login'); // Sesuai dengan Route::name('admin.')->group(... Route::get('/login')->name('login') ...)
+            }
+            // Selain itu (customer), lempar ke Google Login
+            return route('google.login');
+        });
+
+        // --- ALIAS MIDDLEWARE ADMIN ---
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
-        // --- TAMBAHAN MODUL 12: Pengecualian CSRF untuk Webhook Midtrans ---
-        // Tanpa kode ini, notifikasi pembayaran dari Midtrans akan ditolak (Error 419)
+        // --- PENGECUALIAN CSRF MIDTRANS ---
         $middleware->validateCsrfTokens(except: [
             '/midtrans/callback',
         ]);

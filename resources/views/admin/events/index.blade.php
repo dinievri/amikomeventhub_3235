@@ -35,21 +35,22 @@
                             <th class="py-3 px-4 text-center w-40">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-700 text-sm">
+                    <tbody id="events-table-body" class="text-gray-700 text-sm">
                         @forelse($events as $key => $event)
                             <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                                 <td class="py-4 px-4 font-medium">{{ $key + 1 }}</td>
-                                <td class="py-4 px-4 font-semibold text-blue-900">{{ $event->name }}</td>
+                                {{-- PERBAIKAN: Menggunakan $event->title --}}
+                                <td class="py-4 px-4 font-semibold text-blue-900">{{ $event->title ?? $event->name }}</td>
                                 <td class="py-4 px-4">
                                     <span class="bg-gray-100 text-gray-800 text-xs px-2.5 py-1 rounded-full font-medium">
                                         {{ $event->category->name ?? 'Tanpa Kategori' }}
                                     </span>
                                 </td>
                                 <td class="py-4 px-4 text-gray-500">
-                                    {{ \Carbon\Carbon::parse($event->date)->format('d M Y') }}
+                                    {{ $event->date ? \Carbon\Carbon::parse($event->date)->format('d M Y') : '-' }}
                                 </td>
                                 <td class="py-4 px-4 font-medium">
-                                    @if($event->price == 0)
+                                    @if(($event->price ?? 0) == 0)
                                         <span class="text-green-600 font-bold">Gratis</span>
                                     @else
                                         Rp {{ number_format($event->price, 0, ',', '.') }}
@@ -83,4 +84,23 @@
         </div>
     </div>
 </div>
+
+{{-- SCRIPT AUTO-REFRESH SAMA SEPERTI DI PARTNER --}}
+<script>
+    setInterval(function() {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTbody = doc.getElementById('events-table-body');
+                const currentTbody = document.getElementById('events-table-body');
+                
+                if (newTbody && currentTbody) {
+                    currentTbody.innerHTML = newTbody.innerHTML;
+                }
+            })
+            .catch(err => console.error('Auto refresh error:', err));
+    }, 3000);
+</script>
 @endsection
