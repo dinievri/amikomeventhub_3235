@@ -18,14 +18,16 @@ class EventController extends Controller
         $user = auth()->user();
 
         // LOGIKA MULTI-TENANT:
-        // Jika Role = Admin (Superadmin), tampilkan SELURUH event dari semua organisasi.
-        if ($user->role === 'admin') {
-            $events = Event::with('organization')->latest()->paginate(10);
+        // Jika user terhubung ke Organisasi (misal: AMCC / HIMMSI), HANYA tampilkan event milik organisasinya.
+        if ($user->organization) {
+            $events = Event::where('organization_id', $user->organization->id)
+                ->latest()
+                ->paginate(10);
         } else {
-            // Jika Role = Panitia/HIMA, HANYA tampilkan event milik organisasinya sendiri
-            $events = Event::whereHas('organization', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->latest()->paginate(10);
+            // Jika Superadmin murni (tidak punya relasi organisasi), tampilkan SELURUH event.
+            $events = Event::with('organization')
+                ->latest()
+                ->paginate(10);
         }
 
         return view('admin.events.index', compact('events'));
@@ -87,9 +89,6 @@ class EventController extends Controller
      */
     public function show(string $id)
     {
-        // PERBAIKAN UTAMA:
-        // Panggil relasi 'reviews.user' dan 'organization' agar data ulasan, 
-        // rating, dan nama pembuat ulasan tidak bermasalah/hilang di view.
         $event = Event::with(['reviews.user', 'organization'])->findOrFail($id);
 
         return view('admin.events.show', compact('event'));

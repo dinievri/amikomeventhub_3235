@@ -10,6 +10,7 @@ class Event extends Model
     use HasFactory;
 
     protected $fillable = [
+        'organizer_id',
         'category_id',
         'organization_id',
         'title',
@@ -26,6 +27,12 @@ class Event extends Model
         'price' => 'integer',
         'stock' => 'integer',
     ];
+
+    // Relasi ke User (Organizer/Penyelenggara)
+    public function organizer()
+    {
+        return $this->belongsTo(User::class, 'organizer_id');
+    }
 
     // Relasi ke Category
     public function category()

@@ -118,4 +118,4 @@
         </div>
     </div>
 </main>
-@endsectionphp artisan view:clear
+@endsection

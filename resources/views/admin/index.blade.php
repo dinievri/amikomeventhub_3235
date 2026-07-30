@@ -82,6 +82,14 @@
         </div>
     @endif
 
+    {{-- GRAFIK PERTUMBUHAN EVENT (FITUR SOAL 2) --}}
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-10">
+        <h3 class="text-lg font-black text-slate-800 mb-4">Grafik Pertumbuhan Penyelenggaraan Event</h3>
+        <div class="relative w-full h-72">
+            <canvas id="eventGrowthChart"></canvas>
+        </div>
+    </div>
+
     {{-- TABEL TRANSAKSI TERBARU --}}
     @if(isset($recentTransactions) && $recentTransactions->count() > 0)
         <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-10">
@@ -124,4 +132,41 @@
         <h2 class="text-xl font-black text-slate-800">Selamat datang di Panel Admin!</h2>
         <p class="text-slate-500 mt-3">Gunakan menu di sisi kiri atau atas untuk mengelola Event, Kategori, dan Transaksi.</p>
     </div>
+
+    {{-- SCRIPT CHART.JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('eventGrowthChart').getContext('2d');
+            
+            const monthlyData = {!! json_encode($monthlyEvents ?? []) !!};
+            const labels = Object.keys(monthlyData);
+            const dataValues = Object.values(monthlyData);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length > 0 ? labels : ['Belum ada data'],
+                    datasets: [{
+                        label: 'Jumlah Event Dibuat',
+                        data: dataValues.length > 0 ? dataValues : [0],
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1 } 
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 @endsection
